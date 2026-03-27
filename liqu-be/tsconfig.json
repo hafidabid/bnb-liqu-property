@@ -1,0 +1,29 @@
+{
+  "include": [
+    "./index.ts",
+    "./app/**/*",
+    "./prisma/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "moduleResolution": "nodenext",
+    "module": "NodeNext",
+    "baseUrl": "./",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "skipLibCheck": true,
+    "types": [
+      "./types/fastify.d.ts"
+    ]
+  }
+}

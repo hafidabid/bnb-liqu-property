@@ -1,0 +1,113 @@
+name: liquprop
+
+services:
+  # ---------------------------------------------------------------------------
+  # Database Services
+  # ---------------------------------------------------------------------------
+  postgres-be:
+    image: postgres:16-alpine
+    container_name: liquprop-postgres-be
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: liquprop
+      POSTGRES_USER: liquprop
+      POSTGRES_PASSWORD: liquprop
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-be:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liquprop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-indexer:
+    image: postgres:16-alpine
+    container_name: liquprop-postgres-indexer
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ponder
+      POSTGRES_PASSWORD: ponder
+      POSTGRES_DB: ponder
+    ports:
+      - "5340:5432"
+    volumes:
+      - pgdata-indexer:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ponder -d ponder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Application Services
+  # ---------------------------------------------------------------------------
+  be:
+    build:
+      context: ./liqu-be
+      dockerfile: Dockerfile
+    container_name: liquprop-be
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./liqu-be/.env
+    environment:
+      - DATABASE_URL=postgresql://liquprop:liquprop@postgres-be:5432/liquprop
+      - APP_PORT=8000
+      - APP_HOST=0.0.0.0
+      - INDEXER_GQL_URL=http://indexer:42069/graphql
+    depends_on:
+      postgres-be:
+        condition: service_healthy
+
+  indexer:
+    build:
+      context: ./liqu-indexer
+      dockerfile: Dockerfile
+    container_name: liquprop-indexer
+    restart: unless-stopped
+    ports:
+      - "42069:42069"
+    env_file:
+      - ./liqu-indexer/.env
+    environment:
+      - DATABASE_URL=postgresql://ponder:ponder@postgres-indexer:5432/ponder
+    depends_on:
+      postgres-indexer:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  fe:
+    build:
+      context: ./liquprop-fe
+      dockerfile: Dockerfile
+      args:
+        # Can be set via shell or root .env, falls back to empty if not provided
+        - VITE_WALLETCONNECT_PROJECT_ID=${VITE_WALLETCONNECT_PROJECT_ID:-}
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:https://liqu-be.talentor.tech}
+        - VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN:-}
+    container_name: liquprop-fe
+    restart: unless-stopped
+    ports:
+      # Exposes FE on port 3000 mapping internally to 80 (nginx)
+      - "3000:80"
+    env_file:
+      - ./liquprop-fe/.env
+    depends_on:
+      - be
+      - indexer
+
+volumes:
+  pgdata-be:
+  pgdata-indexer:

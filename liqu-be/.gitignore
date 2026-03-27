@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+.vscode
+.idea
+.fleet
+
+.env
+.env.local
+.env.development
+.env.production

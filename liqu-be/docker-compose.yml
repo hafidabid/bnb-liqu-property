@@ -1,0 +1,72 @@
+services:
+  be:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://liquprop:liquprop@postgres:5432/liquprop}
+      - APP_PORT=8000
+      - APP_HOST=0.0.0.0
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - S3_ENDPOINT=${S3_ENDPOINT:-http://minio:9000}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-liquprop}
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-https://liqu-storage.talentor.tech/liquprop}
+      - INDEXER_GQL_URL=${INDEXER_GQL_URL:-https://liqu-indexer.talentor.tech/graphql}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-liquprop}
+      POSTGRES_USER: ${POSTGRES_USER:-liquprop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-liquprop}
+    ports:
+      - "5098:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liquprop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-liquprop}
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/$${S3_BUCKET_NAME} || true;
+      /usr/bin/mc anonymous set public myminio/$${S3_BUCKET_NAME};
+      exit 0;
+      "
+
+volumes:
+  pgdata:
+  minio_data:

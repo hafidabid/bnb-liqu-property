@@ -1,0 +1,66 @@
+{
+  "name": "be-template-ts",
+  "version": "0.0.1",
+  "description": "Backend Template TypeScript",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "prebuild": "prisma generate",
+    "build": "tsc",
+    "prestart": "prisma generate",
+    "start": "node dist/index.js",
+    "dev": "NODE_OPTIONS='--conditions=source' tsx watch index.ts",
+    "test:flow": "NODE_OPTIONS='--conditions=source' tsx scripts/testFlow.ts",
+    "test:swap-yield": "NODE_OPTIONS='--conditions=source' tsx scripts/testSwapYieldFlow.ts",
+    "lint": "eslint .",
+    "format": "eslint . --fix",
+    "db:push": "prisma db push",
+    "db:fresh": "prisma db push --force-reset",
+    "db:reset": "prisma db push --force-reset && NODE_OPTIONS='--conditions=source' tsx ./prisma/seeders/index.ts"
+  },
+  "author": "Galang Ekayudha",
+  "license": "MIT",
+  "imports": {
+    "#app/*": {
+      "source": "./app/*.ts",
+      "import": "./dist/app/*.js",
+      "default": "./dist/app/*.js"
+    },
+    "#prisma/*": {
+      "source": "./prisma/*.ts",
+      "import": "./dist/prisma/*.js",
+      "default": "./dist/prisma/*.js"
+    },
+    "#types/*": {
+      "source": "./types/*.ts",
+      "import": "./dist/types/*.js",
+      "default": "./dist/types/*.js"
+    }
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.800.0",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^9.0.3",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@prisma/client": "6.5.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "node-cron": "^4.2.1",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.1.1",
+    "tsx": "^4.19.3",
+    "viem": "^2.46.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.4",
+    "@types/node-cron": "^3.0.11",
+    "eslint": "^9.20.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prisma": "^6.5.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.1"
+  }
+}

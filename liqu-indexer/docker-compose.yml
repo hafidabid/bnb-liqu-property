@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ponder
+      POSTGRES_PASSWORD: ponder
+      POSTGRES_DB: ponder
+    ports:
+      - "5340:5432"   # host 5340 → container 5432 (avoids conflict with local postgres)
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ponder -d ponder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  indexer:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "42069:42069"
+    environment:
+      DATABASE_URL: postgresql://ponder:ponder@db:5432/ponder
+      PONDER_RPC_URL_1: ${PONDER_RPC_URL_1}
+      PONDER_RPC_URL_84532: ${PONDER_RPC_URL_84532}
+      CH_PT: ${CH_PT}
+      CH_ASSET: ${CH_ASSET}
+      SWAP_ROUTER_PT_BASE_SEPOLIA: ${SWAP_ROUTER_PT_BASE_SEPOLIA}
+    env_file:
+      - .env
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+volumes:
+  pg_data:

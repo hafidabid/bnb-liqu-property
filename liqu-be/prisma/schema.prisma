@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+// ─── User ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @unique
+  nonce         String?
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ─── Chain ──────────────────────────────────────────────────────────────────
+
+model Chain {
+  id                     Int      @id @default(autoincrement())
+  chainId                String   @unique
+  name                   String
+  shortName              String?
+  nativeCurrencyName     String
+  nativeCurrencySymbol   String
+  nativeCurrencyDecimals Int      @default(18)
+  blockExplorerName      String?
+  blockExplorerUrl       String?
+  isTestnet              Boolean  @default(false)
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  rpcs           Rpc[]
+  contracts      Contract[]
+  systemAccounts SystemAccount[]
+  transactions   BlockchainTransaction[]
+}
+
+// ─── Rpc ────────────────────────────────────────────────────────────────────
+
+enum RpcTier {
+  FREE
+  PAID
+}
+
+model Rpc {
+  id        Int      @id @default(autoincrement())
+  url       String
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0)
+  tier      RpcTier  @default(FREE)
+  chainId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chain Chain @relation(fields: [chainId], references: [chainId])
+}
+
+// ─── Contract ────────────────────────────────────────────────────────────────
+
+model Contract {
+  id           Int      @id @default(autoincrement())
+  chainId      String
+  contractName String
+  address      String
+  abi          Json?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  chain Chain @relation(fields: [chainId], references: [chainId])
+
+  @@unique([chainId, contractName])
+}
+
+// ─── System Account ──────────────────────────────────────────────────────────
+model SystemAccount {
+  id         Int      @id @default(autoincrement())
+  chainId    String
+  name       String
+  address    String
+  privateKey String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  chain Chain @relation(fields: [chainId], references: [chainId])
+
+  @@unique([chainId, name])
+}
+
+// ─── Property ────────────────────────────────────────────────────────────────
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  REGISTERED
+  TOKENIZED
+  LISTED
+  TOKEN_LIVE
+  SUSPENDED
+}
+
+enum DocumentType {
+  IMAGE
+  LEGAL_TITLE
+  LEGAL_REGISTRATION
+  PROSPECTUS
+  REPORT
+  OTHER
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  YIELD_PERCENTAGE
+}
+
+model Property {
+  id                  String         @id @default(cuid())
+  ownerAddress        String
+  tokenId             BigInt?
+  metadataURI         String?
+  name                String
+  description         String?
+  propertyType        String
+  address             String
+  latitude            Float
+  longitude           Float
+  totalAreaSqm        Float?
+  legalEntityName     String?
+  legalRegistrationId String?
+  legalNotaryName     String?
+  prospectusMarkdown  String?        @db.Text
+  salePeriodStart     DateTime?
+  salePeriodEnd       DateTime?
+  targetFundUSD       Float?
+  thumbnailDocumentId String?
+  status              PropertyStatus @default(DRAFT)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  documents          PropertyDocument[] @relation("PropertyDocuments")
+  thumbnailDocument  PropertyDocument?  @relation("PropertyThumbnail", fields: [thumbnailDocumentId], references: [id])
+  sla                PropertySLA?
+  yieldDistributions YieldDistribution[]
+  reports            PropertyReport[]
+  subscription       PlatformSubscription?
+  transactions       BlockchainTransaction[]
+  priceSnapshots     PriceSnapshot[]
+  tokenCaches        UserTokenCache[]
+
+  @@index([ownerAddress])
+  @@index([tokenId])
+}
+
+model PropertyDocument {
+  id         String       @id @default(cuid())
+  propertyId String
+  property   Property     @relation("PropertyDocuments", fields: [propertyId], references: [id])
+  type       DocumentType
+  fileName   String
+  url        String
+  uploadedAt DateTime     @default(now())
+
+  thumbnailOf Property[] @relation("PropertyThumbnail")
+}
+
+model PropertySLA {
+  id               String    @id @default(cuid())
+  propertyId       String    @unique
+  property         Property  @relation(fields: [propertyId], references: [id])
+  yieldPeriodDays  Int
+  reportPeriodDays Int
+  holderYieldBPS   Int
+  baselineYieldBPS Int
+  nextReportDueAt  DateTime?
+  nextYieldDueAt   DateTime?
+}
+
+model YieldDistribution {
+  id             String   @id @default(cuid())
+  propertyId     String
+  property       Property @relation(fields: [propertyId], references: [id])
+  tokenId        BigInt
+  totalAmount    Decimal  @db.Decimal(36, 18)
+  holderAmount   Decimal  @db.Decimal(36, 18)
+  baselineAmount Decimal  @db.Decimal(36, 18)
+  platformFee    Decimal  @db.Decimal(36, 18)
+  txHash         String?
+  distributedAt  DateTime @default(now())
+}
+
+model PropertyReport {
+  id                String   @id @default(cuid())
+  propertyId        String
+  property          Property @relation(fields: [propertyId], references: [id])
+  reportPeriodStart DateTime
+  reportPeriodEnd   DateTime
+  description       String?
+  documents         String[]
+  onChainTxHash     String?
+  submittedAt       DateTime @default(now())
+}
+
+// ─── Blockchain Transactions ─────────────────────────────────────────────────
+
+enum TxType {
+  REGISTER_PROPERTY
+  MINT_PRINCIPLE
+  DISTRIBUTE_YIELD
+  DEPLOY_GUARD
+  SWAP_TOKEN
+}
+
+enum TxStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+model BlockchainTransaction {
+  id         String    @id @default(cuid())
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  chainId    String
+  chain      Chain     @relation(fields: [chainId], references: [chainId])
+  type       TxType
+  txHash     String    @unique
+  status     TxStatus  @default(PENDING)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([propertyId])
+}
+
+model PlatformSubscription {
+  id           String           @id @default(cuid())
+  propertyId   String           @unique
+  property     Property         @relation(fields: [propertyId], references: [id])
+  ownerAddress String
+  plan         SubscriptionPlan
+  activeUntil  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+// ─── Price Tracking ──────────────────────────────────────────────────────────
+
+enum SnapshotSource {
+  INIT
+  CRON
+  YIELD
+}
+
+model PriceSnapshot {
+  id            String         @id @default(cuid())
+  propertyId    String
+  property      Property       @relation(fields: [propertyId], references: [id])
+  tokenId       BigInt
+  chainId       String
+  tokenPrice    Decimal        @db.Decimal(36, 18)
+  baselinePrice Decimal        @db.Decimal(36, 18)
+  blockNumber   BigInt?
+  snapshotAt    DateTime       @default(now())
+  source        SnapshotSource @default(CRON)
+
+  @@unique([propertyId, chainId, blockNumber])
+  @@index([propertyId])
+  @@index([tokenId, chainId])
+}
+
+model SyncState {
+  id               Int      @id @default(autoincrement())
+  chainId          String   @unique
+  lastSyncedBlock  BigInt   @default(0)
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Portfolio Cache ──────────────────────────────────────────────────────────
+
+model UserTokenCache {
+  id               String   @id @default(cuid())
+  walletAddress    String
+  propertyId       String
+  tokenId          BigInt
+  chainId          String
+  balance          String           // raw BigInt as string (no precision loss)
+  balanceFormatted Decimal          @db.Decimal(36, 18)
+  currentPrice     Decimal          @db.Decimal(36, 18)
+  pendingYield     Decimal          @db.Decimal(36, 18)
+  currentValue     Decimal          @db.Decimal(36, 18)
+  propertyName     String
+  propertyAddress  String
+  propertyStatus   String
+  syncedAt         DateTime         @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([walletAddress, propertyId, chainId])
+  @@index([walletAddress, chainId])
+  @@index([propertyId])
+}
