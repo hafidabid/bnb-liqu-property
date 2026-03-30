@@ -8,6 +8,8 @@ import {
   propertyRegistered,
   reportAcknowledged,
   yieldDistributed,
+  wrapped,
+  unwrapped,
 } from "ponder:schema";
 
 ponder.on("PrincipleToken:PrincipleAssetMinted", async ({ event, context }) => {
@@ -152,6 +154,42 @@ ponder.on("PrincipleToken:ReportAcknowledged", async ({ event, context }) => {
       id: `${event.transaction.hash}-${event.log.logIndex}`,
       tokenId: event.args.tokenId,
       acknowledgedAt: event.args.timestamp,
+      transactionHash: event.transaction.hash,
+      blockNumber: event.block.number,
+      blockTimestamp: event.block.timestamp,
+      transactionIndex: BigInt(event.transaction.transactionIndex),
+      logIndex: BigInt(event.log.logIndex),
+    })
+    .onConflictDoNothing();
+});
+
+ponder.on("PrincipleToken:Wrapped", async ({ event, context }) => {
+  const { db } = context;
+  await db
+    .insert(wrapped)
+    .values({
+      id: `${event.transaction.hash}-${event.log.logIndex}`,
+      tokenId: event.args.tokenId,
+      user: event.args.user,
+      amount: event.args.amount,
+      transactionHash: event.transaction.hash,
+      blockNumber: event.block.number,
+      blockTimestamp: event.block.timestamp,
+      transactionIndex: BigInt(event.transaction.transactionIndex),
+      logIndex: BigInt(event.log.logIndex),
+    })
+    .onConflictDoNothing();
+});
+
+ponder.on("PrincipleToken:Unwrapped", async ({ event, context }) => {
+  const { db } = context;
+  await db
+    .insert(unwrapped)
+    .values({
+      id: `${event.transaction.hash}-${event.log.logIndex}`,
+      tokenId: event.args.tokenId,
+      user: event.args.user,
+      amount: event.args.amount,
       transactionHash: event.transaction.hash,
       blockNumber: event.block.number,
       blockTimestamp: event.block.timestamp,

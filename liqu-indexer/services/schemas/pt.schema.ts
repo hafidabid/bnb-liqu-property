@@ -97,3 +97,27 @@ export const platformFeeMinted = onchainTable("platformFeeMinted", (t) => ({
   transactionIndex: t.bigint(),
   logIndex: t.bigint(),
 }));
+
+export const wrapped = onchainTable("wrapped", (t) => ({
+  id: t.text().primaryKey(),
+  tokenId: t.bigint(),
+  user: t.text(),
+  amount: t.bigint(),
+  transactionHash: t.text(),
+  blockNumber: t.bigint(),
+  blockTimestamp: t.bigint(),
+  transactionIndex: t.bigint(),
+  logIndex: t.bigint(),
+}));
+
+export const unwrapped = onchainTable("unwrapped", (t) => ({
+  id: t.text().primaryKey(),
+  tokenId: t.bigint(),
+  user: t.text(),
+  amount: t.bigint(),
+  transactionHash: t.text(),
+  blockNumber: t.bigint(),
+  blockTimestamp: t.bigint(),
+  transactionIndex: t.bigint(),
+  logIndex: t.bigint(),
+}));

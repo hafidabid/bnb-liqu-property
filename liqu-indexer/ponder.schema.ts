@@ -7,4 +7,6 @@ export {
   yieldDistributed,
   reportAcknowledged,
   platformFeeMinted,
+  wrapped,
+  unwrapped,
 } from "./services/schemas/pt.schema";
