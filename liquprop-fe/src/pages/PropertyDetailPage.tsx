@@ -17,6 +17,7 @@ import { InvestDialog } from '@/components/property/InvestDialog'
 import { DeployGuardDialog } from '@/components/property/DeployGuardDialog'
 import { SwapPanel } from '@/components/property/SwapPanel'
 import { PresalePanel } from '@/components/property/PresalePanel'
+import { WrapUnwrapDialog } from '@/components/property/WrapUnwrapDialog'
 import useEmblaCarousel from 'embla-carousel-react'
 import { PrincipleTokenABI } from '@/lib/abis/PrincipleTokenABI'
 import {
@@ -90,6 +91,8 @@ export default function PropertyDetailPage() {
 
   const [isInvestOpen, setIsInvestOpen] = useState(false)
   const [isDeployOpen, setIsDeployOpen] = useState(false)
+  const [wrapUnwrapState, setWrapUnwrapState] = useState<{ mode: 'wrap' | 'unwrap'; open: boolean } | null>(null)
+
   const [emblaRef, emblaApi] = useEmblaCarousel()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [activeDocTab, setActiveDocTab] = useState<string | null>(null)
@@ -812,39 +815,68 @@ export default function PropertyDetailPage() {
               {/* Your Holdings */}
               {isConnected && (
                 (!isGuardDeployed && myTokenBalance !== undefined && myTokenBalance > 0n) ||
-                (isGuardDeployed && myYieldTokenBalanceRaw !== undefined && (myYieldTokenBalanceRaw as bigint) > 0n)
+                (isGuardDeployed && (
+                  (myTokenBalance !== undefined && myTokenBalance > 0n) ||
+                  (myYieldTokenBalanceRaw !== undefined && (myYieldTokenBalanceRaw as bigint) > 0n)
+                ))
               ) && (
                   <div className="rounded-2xl border-2 border-foreground bg-card p-5 shadow-pop-violet space-y-3">
                     <h3 className="font-heading font-bold text-foreground">Your Holdings</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Tokens Owned</span>
-                        <span className="font-heading text-lg font-extrabold text-tertiary">
-                          {isGuardDeployed
-                            ? Number(formatUnits(myYieldTokenBalanceRaw as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 4 })
-                            : myTokenBalance?.toString()}
-                        </span>
-                      </div>
-                      {isGuardDeployed ? (
-                        marketStats?.currentPrice && (
-                          <div className="flex justify-between border-t-2 border-foreground/10 pt-2">
-                            <span className="text-sm text-muted-foreground">Est. Value</span>
-                            <span className="font-bold text-primary">
-                              {fmtUSD(Number(formatUnits(myYieldTokenBalanceRaw as bigint, 18)) * marketStats.currentPrice)}
-                            </span>
+
+                    <div className="space-y-4">
+                      {/* Unwrapped (Fractions) */}
+                      {myTokenBalance !== undefined && myTokenBalance > 0n && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-semibold text-muted-foreground">{isGuardDeployed ? 'Unwrapped Fractions' : 'Tokens Owned'}</span>
+                            <div className="text-right">
+                              <span className="font-heading text-lg font-extrabold text-indigo-600 block">
+                                {myTokenBalance.toString()}
+                              </span>
+                              {!isGuardDeployed && positionData && (positionData as any).presalePrice > 0n && (
+                                <span className="text-xs font-semibold text-primary block mt-0.5">
+                                  {fmtUSD(Number(myTokenBalance) * Number((positionData as any).presalePrice) / 1e6)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )
-                      ) : (
-                        positionData && (positionData as any).presalePrice > 0n && (
-                          <div className="flex justify-between border-t-2 border-foreground/10 pt-2">
-                            <span className="text-sm text-muted-foreground">Est. Value</span>
-                            <span className="font-bold text-primary">
-                              {fmtUSD(Number(myTokenBalance) * Number((positionData as any).presalePrice) / 1e6)}
-                            </span>
+                          {isGuardDeployed && (
+                            <button
+                              onClick={() => setWrapUnwrapState({ mode: 'wrap', open: true })}
+                              className="btn-outline-pop w-full py-2 text-xs border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-300"
+                            >
+                              Wrap to Trade
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Wrapped (YieldTokens) */}
+                      {isGuardDeployed && myYieldTokenBalanceRaw !== undefined && (myYieldTokenBalanceRaw as bigint) > 0n && (
+                        <div className="space-y-2 border-t-2 border-foreground/10 pt-4">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-semibold text-muted-foreground">Wrapped for Trading</span>
+                            <div className="text-right">
+                              <span className="font-heading text-lg font-extrabold text-amber-600 block">
+                                {Number(formatUnits(myYieldTokenBalanceRaw as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 4 })} YT
+                              </span>
+                              {marketStats?.currentPrice && (
+                                <span className="text-xs font-semibold text-primary block mt-0.5">
+                                  {fmtUSD(Number(formatUnits(myYieldTokenBalanceRaw as bigint, 18)) * marketStats.currentPrice)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )
+                          <button
+                            onClick={() => setWrapUnwrapState({ mode: 'unwrap', open: true })}
+                            className="btn-outline-pop w-full py-2 text-xs border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 hover:border-amber-300"
+                          >
+                            Unwrap for Yield
+                          </button>
+                        </div>
                       )}
                     </div>
+
                   </div>
                 )}
 
@@ -899,6 +931,24 @@ export default function PropertyDetailPage() {
           }, 2000)
         }}
       />
+      {wrapUnwrapState && positionData && isGuardDeployed && PTContractAddress && (
+        <WrapUnwrapDialog
+          isOpen={wrapUnwrapState.open}
+          onClose={() => setWrapUnwrapState(null)}
+          mode={wrapUnwrapState.mode}
+          tokenId={(property as any).tokenId}
+          propertyPrice={(positionData as any).presalePrice}
+          principleTokenAddress={PTContractAddress}
+          yieldTokenAddress={(positionData as any).yieldToken}
+          maxAmount={wrapUnwrapState.mode === 'wrap'
+            ? Number(myTokenBalance ?? 0)
+            : Number((myYieldTokenBalanceRaw as bigint) / ((positionData as any).presalePrice * 1000000000000n))}
+          onSuccess={() => {
+            refetchMyBalance()
+            refetchYieldBalance()
+          }}
+        />
+      )}
     </div>
   )
 }

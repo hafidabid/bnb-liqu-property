@@ -25,14 +25,9 @@ import Header from '@/components/layout/Header'
 import { PropertyWizard } from '@/components/property/PropertyWizard'
 import { DocumentDropzone } from '@/components/property/DocumentDropzone'
 import {
-  createProperty,
-  uploadDocument,
-  uploadYoutubeUrl,
-  updateProperty,
-  setSLA,
-  setSubscription,
-  type CreatePropertyInput,
-  type SetSLAInput,
+  uploadAsset,
+  createPropertyFull,
+  type CreatePropertyFullInput,
 } from '@/lib/apicall/property'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -94,8 +89,16 @@ type Step1Data = z.infer<typeof step1Schema>
 type Step2Data = z.infer<typeof step2Schema>
 type TokenSaleData = z.infer<typeof tokenSaleSchema>
 
-// ─── Geocoding types ──────────────────────────────────────────────────────────
+// ─── Upload tracking ────────────────────────────────────────────────────
+interface UploadedDoc {
+  id: string
+  url: string
+  localFile: File
+  uploading: boolean
+  error?: string
+}
 
+// ─── Geocoding types ────────────────────────────────────────────────────
 interface GeoFeature {
   id: string
   place_name: string
@@ -117,16 +120,20 @@ export default function ListPropertyPage() {
   // ── Collected data ───────────────────────────────────────────────────────
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null)
   const [step2Data, setStep2Data] = useState<Step2Data | null>(null)
-  const [legalTitleFile, setLegalTitleFile] = useState<File | null>(null)
-  const [legalRegFile, setLegalRegFile] = useState<File | null>(null)
+
+  // ── Legal docs — uploaded immediately on select ───────────────────────────
+  const [legalTitleDoc, setLegalTitleDoc] = useState<UploadedDoc | null>(null)
+  const [legalRegDoc, setLegalRegDoc] = useState<UploadedDoc | null>(null)
 
   // ── Media step state ─────────────────────────────────────────────────────
-  const [mediaImages, setMediaImages] = useState<File[]>([])
+  // Each image is uploaded immediately; we track loading/done state per image
+  const [imageUploads, setImageUploads] = useState<UploadedDoc[]>([])
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [youtubeError, setYoutubeError] = useState<string | null>(null)
   const [thumbnailIndex, setThumbnailIndex] = useState<number | null>(null)
 
-  const [prospectusFile, setProspectusFile] = useState<File | null>(null)
+  // ── Prospectus ────────────────────────────────────────────────────────────
+  const [prospectusDoc, setProspectusDoc] = useState<UploadedDoc | null>(null)
   const [prospectusMarkdown, setProspectusMarkdown] = useState('')
   const [prospectusTab, setProspectusTab] = useState<'write' | 'preview'>('write')
   const [tokenSaleData, setTokenSaleData] = useState<TokenSaleData | null>(null)
@@ -284,7 +291,22 @@ export default function ListPropertyPage() {
     setShowPublishDialog(false)
     setError(null)
     try {
-      const body: CreatePropertyInput = {
+      // Collect IDs of all pre-uploaded documents
+      const documentIds: string[] = [
+        ...(legalTitleDoc && !legalTitleDoc.uploading && !legalTitleDoc.error ? [legalTitleDoc.id] : []),
+        ...(legalRegDoc && !legalRegDoc.uploading && !legalRegDoc.error ? [legalRegDoc.id] : []),
+        ...(prospectusDoc && !prospectusDoc.uploading && !prospectusDoc.error ? [prospectusDoc.id] : []),
+        ...imageUploads.filter(d => !d.uploading && !d.error).map(d => d.id),
+      ]
+
+      // Thumbnail: find the uploaded doc corresponding to thumbnailIndex
+      const completedImages = imageUploads.filter(d => !d.uploading && !d.error)
+      const thumbnailDocumentId =
+        thumbnailIndex !== null && completedImages[thumbnailIndex]
+          ? completedImages[thumbnailIndex].id
+          : null
+
+      const body: CreatePropertyFullInput = {
         name: step1Data.name,
         description: step1Data.description,
         propertyType: step1Data.propertyType,
@@ -293,62 +315,27 @@ export default function ListPropertyPage() {
         longitude: step1Data.longitude,
         ...(step2Data?.totalAreaSqm ? { totalAreaSqm: step2Data.totalAreaSqm } : {}),
         ...(step2Data?.legalEntityName ? { legalEntityName: step2Data.legalEntityName } : {}),
-        ...(step2Data?.legalRegistrationId
-          ? { legalRegistrationId: step2Data.legalRegistrationId }
-          : {}),
+        ...(step2Data?.legalRegistrationId ? { legalRegistrationId: step2Data.legalRegistrationId } : {}),
         ...(step2Data?.legalNotaryName ? { legalNotaryName: step2Data.legalNotaryName } : {}),
         ...(prospectusMarkdown ? { prospectusMarkdown } : {}),
         salePeriodStart: tokenSaleData.salePeriodStart,
         salePeriodEnd: tokenSaleData.salePeriodEnd,
         targetFundUSD: tokenSaleData.targetFundUSD,
+        documentIds,
+        thumbnailDocumentId,
+        ...(youtubeUrl && YOUTUBE_PATTERN.test(youtubeUrl) ? { youtubeUrl } : {}),
+        subscriptionPlan,
+        sla: {
+          yieldPeriodDays: yieldSLA.yieldPeriodDays,
+          reportPeriodDays: yieldSLA.reportPeriodDays,
+          holderYieldBPS: yieldSLA.holderYieldBPS,
+          baselineYieldBPS: yieldSLA.baselineYieldBPS,
+        },
+        publishNow: publish,
       }
 
-      const property = await createProperty(body)
-      const propertyId = property.id
-
-      // Upload legal + prospectus docs in parallel
-      const uploads: Promise<unknown>[] = []
-      if (legalTitleFile) uploads.push(uploadDocument(propertyId, legalTitleFile, 'LEGAL_TITLE'))
-      if (legalRegFile) uploads.push(uploadDocument(propertyId, legalRegFile, 'LEGAL_REGISTRATION'))
-      if (prospectusFile) uploads.push(uploadDocument(propertyId, prospectusFile, 'PROSPECTUS'))
-      await Promise.all(uploads)
-
-      // Upload images sequentially to get back IDs for thumbnail selection
-      let thumbnailDocumentId: string | undefined
-      for (let i = 0; i < mediaImages.length; i++) {
-        const doc = await uploadDocument(propertyId, mediaImages[i], 'IMAGE')
-        if (i === thumbnailIndex) {
-          thumbnailDocumentId = doc.id
-        }
-      }
-
-      // Upload YouTube URL if provided
-      if (youtubeUrl && YOUTUBE_PATTERN.test(youtubeUrl)) {
-        await uploadYoutubeUrl(propertyId, youtubeUrl)
-      }
-
-      // Set thumbnail if selected
-      if (thumbnailDocumentId) {
-        await updateProperty(propertyId, { thumbnailDocumentId })
-      }
-
-      // Subscription first (so setSLA can derive platform BPS)
-      await setSubscription(propertyId, subscriptionPlan)
-
-      // SLA
-      const slaBody: SetSLAInput = {
-        yieldPeriodDays: yieldSLA.yieldPeriodDays,
-        reportPeriodDays: yieldSLA.reportPeriodDays,
-        holderYieldBPS: yieldSLA.holderYieldBPS,
-        baselineYieldBPS: yieldSLA.baselineYieldBPS,
-      }
-      await setSLA(propertyId, slaBody)
-
-      // Publish to launchpad if requested
-      if (publish) {
-        await updateProperty(propertyId, { status: 'PENDING_REVIEW' })
-      }
-
+      // ✨ Single atomic request — all or nothing
+      await createPropertyFull(body)
       navigate('/my-properties')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -604,20 +591,42 @@ export default function ListPropertyPage() {
                   <div className="space-y-1">
                     <label className="text-sm font-semibold">Legal Title Document</label>
                     <DocumentDropzone
-                      label="Upload legal title"
-                      file={legalTitleFile}
-                      onFile={setLegalTitleFile}
-                      onRemove={() => setLegalTitleFile(null)}
+                      label={legalTitleDoc?.uploading ? 'Uploading...' : legalTitleDoc ? legalTitleDoc.localFile.name : 'Upload legal title'}
+                      file={legalTitleDoc?.localFile ?? null}
+                      onFile={async (f) => {
+                        if (!f) return
+                        const stub: UploadedDoc = { id: '', url: '', localFile: f, uploading: true }
+                        setLegalTitleDoc(stub)
+                        try {
+                          const doc = await uploadAsset(f, 'LEGAL_TITLE')
+                          setLegalTitleDoc({ id: doc.id, url: doc.url, localFile: f, uploading: false })
+                        } catch (e: any) {
+                          setLegalTitleDoc({ id: '', url: '', localFile: f, uploading: false, error: e.message })
+                        }
+                      }}
+                      onRemove={() => setLegalTitleDoc(null)}
                     />
+                    {legalTitleDoc?.error && <p className="text-xs text-destructive">{legalTitleDoc.error}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-semibold">Legal Registration Document</label>
                     <DocumentDropzone
-                      label="Upload registration doc"
-                      file={legalRegFile}
-                      onFile={setLegalRegFile}
-                      onRemove={() => setLegalRegFile(null)}
+                      label={legalRegDoc?.uploading ? 'Uploading...' : legalRegDoc ? legalRegDoc.localFile.name : 'Upload registration doc'}
+                      file={legalRegDoc?.localFile ?? null}
+                      onFile={async (f) => {
+                        if (!f) return
+                        const stub: UploadedDoc = { id: '', url: '', localFile: f, uploading: true }
+                        setLegalRegDoc(stub)
+                        try {
+                          const doc = await uploadAsset(f, 'LEGAL_REGISTRATION')
+                          setLegalRegDoc({ id: doc.id, url: doc.url, localFile: f, uploading: false })
+                        } catch (e: any) {
+                          setLegalRegDoc({ id: '', url: '', localFile: f, uploading: false, error: e.message })
+                        }
+                      }}
+                      onRemove={() => setLegalRegDoc(null)}
                     />
+                    {legalRegDoc?.error && <p className="text-xs text-destructive">{legalRegDoc.error}</p>}
                   </div>
                 </div>
 
@@ -675,42 +684,65 @@ export default function ListPropertyPage() {
                 </label>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-foreground/20 p-6 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                   <ImagePlus className="h-8 w-8" strokeWidth={1.5} />
-                  <span>Click to select images (JPEG, PNG, WEBP)</span>
+                  <span>Click to select images — they upload immediately (JPEG, PNG, WEBP)</span>
                   <input
                     type="file"
                     multiple
                     accept="image/jpeg,image/png,image/webp"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const files = Array.from(e.target.files ?? [])
-                      setMediaImages((prev) => {
-                        const next = [...prev, ...files]
-                        if (thumbnailIndex === null && next.length > 0) setThumbnailIndex(0)
-                        return next
-                      })
                       e.target.value = ''
+                      for (const file of files) {
+                        // Append a stub immediately so user sees the new item
+                        const stub: UploadedDoc = { id: '', url: '', localFile: file, uploading: true }
+                        setImageUploads((prev) => {
+                          const next = [...prev, stub]
+                          if (thumbnailIndex === null) setThumbnailIndex(0)
+                          return next
+                        })
+                        try {
+                          const doc = await uploadAsset(file, 'IMAGE')
+                          setImageUploads((prev) =>
+                            prev.map((d) => d.localFile === file ? { ...d, id: doc.id, url: doc.url, uploading: false } : d)
+                          )
+                        } catch (err: any) {
+                          setImageUploads((prev) =>
+                            prev.map((d) => d.localFile === file ? { ...d, uploading: false, error: err.message } : d)
+                          )
+                        }
+                      }
                     }}
                   />
                 </label>
 
-                {mediaImages.length > 0 && (
+                {imageUploads.length > 0 && (
                   <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-                    {mediaImages.map((file, idx) => {
-                      const url = URL.createObjectURL(file)
+                    {imageUploads.map((doc, idx) => {
+                      const previewUrl = URL.createObjectURL(doc.localFile)
                       const isThumb = thumbnailIndex === idx
                       return (
                         <div key={idx} className="relative group">
                           <img
-                            src={url}
-                            alt={file.name}
-                            className={`h-24 w-full rounded-xl border-2 object-cover cursor-pointer transition-all ${
-                              isThumb
-                                ? 'border-primary shadow-pop-emerald'
-                                : 'border-foreground/20 hover:border-primary/60'
-                            }`}
+                            src={previewUrl}
+                            alt={doc.localFile.name}
+                            className={`h-24 w-full rounded-xl border-2 object-cover cursor-pointer transition-all ${isThumb
+                              ? 'border-primary shadow-pop-emerald'
+                              : 'border-foreground/20 hover:border-primary/60'
+                              }`}
                             onClick={() => setThumbnailIndex(idx)}
                           />
-                          {isThumb && (
+                          {doc.uploading && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40">
+                              <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            </div>
+                          )}
+                          {doc.error && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/60 text-white text-xs font-bold p-1 text-center">
+                              Failed
+                            </div>
+                          )}
+                          {isThumb && !doc.uploading && (
                             <div className="absolute top-1 left-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
                               Cover
                             </div>
@@ -718,8 +750,8 @@ export default function ListPropertyPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setMediaImages((prev) => prev.filter((_, i) => i !== idx))
-                              if (thumbnailIndex === idx) setThumbnailIndex(mediaImages.length > 1 ? 0 : null)
+                              setImageUploads((prev) => prev.filter((_, i) => i !== idx))
+                              if (thumbnailIndex === idx) setThumbnailIndex(imageUploads.length > 1 ? 0 : null)
                               else if (thumbnailIndex !== null && thumbnailIndex > idx) setThumbnailIndex(thumbnailIndex - 1)
                             }}
                             className="absolute top-1 right-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -731,7 +763,7 @@ export default function ListPropertyPage() {
                     })}
                   </div>
                 )}
-                {mediaImages.length > 0 && (
+                {imageUploads.length > 0 && (
                   <p className="text-xs text-muted-foreground">Click a photo to set it as the cover thumbnail.</p>
                 )}
               </div>
@@ -776,12 +808,23 @@ export default function ListPropertyPage() {
               <div className="space-y-1">
                 <label className="text-sm font-semibold">Upload Prospectus PDF</label>
                 <DocumentDropzone
-                  label="Upload prospectus (PDF)"
+                  label={prospectusDoc?.uploading ? 'Uploading...' : prospectusDoc ? prospectusDoc.localFile.name : 'Upload prospectus (PDF)'}
                   accept={{ 'application/pdf': ['.pdf'] }}
-                  file={prospectusFile}
-                  onFile={setProspectusFile}
-                  onRemove={() => setProspectusFile(null)}
+                  file={prospectusDoc?.localFile ?? null}
+                  onFile={async (f) => {
+                    if (!f) return
+                    const stub: UploadedDoc = { id: '', url: '', localFile: f, uploading: true }
+                    setProspectusDoc(stub)
+                    try {
+                      const doc = await uploadAsset(f, 'PROSPECTUS')
+                      setProspectusDoc({ id: doc.id, url: doc.url, localFile: f, uploading: false })
+                    } catch (e: any) {
+                      setProspectusDoc({ id: '', url: '', localFile: f, uploading: false, error: e.message })
+                    }
+                  }}
+                  onRemove={() => setProspectusDoc(null)}
                 />
+                {prospectusDoc?.error && <p className="text-xs text-destructive">{prospectusDoc.error}</p>}
               </div>
 
               {/* Markdown editor */}
@@ -792,22 +835,20 @@ export default function ListPropertyPage() {
                     <button
                       type="button"
                       onClick={() => setProspectusTab('write')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
-                        prospectusTab === 'write'
-                          ? 'bg-primary text-white'
-                          : 'bg-background hover:bg-muted'
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${prospectusTab === 'write'
+                        ? 'bg-primary text-white'
+                        : 'bg-background hover:bg-muted'
+                        }`}
                     >
                       <Edit3 className="h-3.5 w-3.5" /> Write
                     </button>
                     <button
                       type="button"
                       onClick={() => setProspectusTab('preview')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
-                        prospectusTab === 'preview'
-                          ? 'bg-primary text-white'
-                          : 'bg-background hover:bg-muted'
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${prospectusTab === 'preview'
+                        ? 'bg-primary text-white'
+                        : 'bg-background hover:bg-muted'
+                        }`}
                     >
                       <Eye className="h-3.5 w-3.5" /> Preview
                     </button>
@@ -971,22 +1012,20 @@ export default function ListPropertyPage() {
 
               {/* Platform share locked badge */}
               <div
-                className={`flex items-center justify-between rounded-xl border-2 p-3 text-sm ${
-                  subscriptionPlan === 'MONTHLY'
-                    ? 'border-primary/30 bg-primary/5'
-                    : 'border-tertiary/30 bg-tertiary/5'
-                }`}
+                className={`flex items-center justify-between rounded-xl border-2 p-3 text-sm ${subscriptionPlan === 'MONTHLY'
+                  ? 'border-primary/30 bg-primary/5'
+                  : 'border-tertiary/30 bg-tertiary/5'
+                  }`}
               >
                 <span className="font-semibold">
                   Platform Share{' '}
                   <span className="font-normal text-muted-foreground">(locked by subscription)</span>
                 </span>
                 <span
-                  className={`rounded-full px-3 py-1 font-bold text-xs ${
-                    subscriptionPlan === 'MONTHLY'
-                      ? 'bg-primary/15 text-primary'
-                      : 'bg-tertiary/15 text-tertiary'
-                  }`}
+                  className={`rounded-full px-3 py-1 font-bold text-xs ${subscriptionPlan === 'MONTHLY'
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-tertiary/15 text-tertiary'
+                    }`}
                 >
                   {subscriptionPlan === 'MONTHLY' ? '0%' : '3%'} fixed
                 </span>
@@ -1101,7 +1140,7 @@ export default function ListPropertyPage() {
                   value={
                     step1Data?.description
                       ? step1Data.description.slice(0, 80) +
-                        (step1Data.description.length > 80 ? '…' : '')
+                      (step1Data.description.length > 80 ? '…' : '')
                       : '—'
                   }
                 />
@@ -1123,22 +1162,22 @@ export default function ListPropertyPage() {
                   label="Area (sqm)"
                   value={step2Data?.totalAreaSqm?.toString() || '—'}
                 />
-                <ReviewRow label="Legal Title Doc" value={legalTitleFile?.name || 'None'} />
-                <ReviewRow label="Legal Reg Doc" value={legalRegFile?.name || 'None'} />
+                <ReviewRow label="Legal Title Doc" value={legalTitleDoc?.localFile.name || 'None'} />
+                <ReviewRow label="Legal Reg Doc" value={legalRegDoc?.localFile.name || 'None'} />
 
                 <hr className="border-foreground/10" />
                 <p className="font-heading font-bold text-xs uppercase tracking-wider text-muted-foreground">
                   Media
                 </p>
-                <ReviewRow label="Photos" value={mediaImages.length > 0 ? `${mediaImages.length} image(s)` : 'None'} />
-                <ReviewRow label="Thumbnail" value={thumbnailIndex !== null ? mediaImages[thumbnailIndex]?.name ?? 'None' : 'None'} />
+                <ReviewRow label="Photos" value={imageUploads.length > 0 ? `${imageUploads.length} image(s)` : 'None'} />
+                <ReviewRow label="Thumbnail" value={thumbnailIndex !== null ? imageUploads[thumbnailIndex]?.localFile.name ?? 'None' : 'None'} />
                 <ReviewRow label="YouTube URL" value={youtubeUrl || 'None'} />
 
                 <hr className="border-foreground/10" />
                 <p className="font-heading font-bold text-xs uppercase tracking-wider text-muted-foreground">
                   Prospectus
                 </p>
-                <ReviewRow label="Prospectus PDF" value={prospectusFile?.name || 'None'} />
+                <ReviewRow label="Prospectus PDF" value={prospectusDoc?.localFile.name || 'None'} />
                 <ReviewRow
                   label="Markdown content"
                   value={prospectusMarkdown ? `${prospectusMarkdown.length} chars` : 'None'}
@@ -1386,11 +1425,10 @@ function PlanCard({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
-        selected
-          ? 'border-primary bg-primary/5 shadow-pop'
-          : 'border-foreground/20 hover:border-primary/50'
-      }`}
+      className={`w-full rounded-xl border-2 p-4 text-left transition-all ${selected
+        ? 'border-primary bg-primary/5 shadow-pop'
+        : 'border-foreground/20 hover:border-primary/50'
+        }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
@@ -1402,9 +1440,8 @@ function PlanCard({
           <p className="mt-2 text-xs text-muted-foreground">{description}</p>
         </div>
         <div
-          className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 ${
-            selected ? 'border-primary bg-primary' : 'border-foreground/30'
-          }`}
+          className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 ${selected ? 'border-primary bg-primary' : 'border-foreground/30'
+            }`}
         />
       </div>
     </button>

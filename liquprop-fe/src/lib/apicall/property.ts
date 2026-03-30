@@ -322,3 +322,48 @@ export const submitDeployGuardTx = (propertyId: string, txHash: string, chainId:
 
 export const submitSwapTx = (propertyId: string, txHash: string, chainId: string) =>
   axiosInstance.post(`/v1/properties/${propertyId}/swap/${chainId}/submit`, { txHash }).then(r => r.data ?? r)
+
+// ─── Asset Upload (pre-upload before property creation) ───────────────────────
+
+export const uploadAsset = (file: File, type: string): Promise<ApiDocument> => {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('type', type)
+  return axiosInstance.post('/v1/assets/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then(r => r.data?.data ?? r.data ?? r)
+}
+
+// ─── Single atomic property creation ─────────────────────────────────────────
+
+export interface CreatePropertyFullInput {
+  name: string
+  description: string
+  propertyType: string
+  address: string
+  latitude: number
+  longitude: number
+  totalAreaSqm?: number
+  legalEntityName?: string
+  legalRegistrationId?: string
+  legalNotaryName?: string
+  prospectusMarkdown?: string
+  salePeriodStart?: string
+  salePeriodEnd?: string
+  targetFundUSD?: number
+  documentIds?: string[]
+  thumbnailDocumentId?: string | null
+  youtubeUrl?: string
+  subscriptionPlan: 'MONTHLY' | 'YIELD_PERCENTAGE'
+  sla: {
+    yieldPeriodDays: number
+    reportPeriodDays: number
+    holderYieldBPS: number
+    baselineYieldBPS: number
+  }
+  publishNow?: boolean
+}
+
+export const createPropertyFull = (body: CreatePropertyFullInput): Promise<ApiProperty> =>
+  axiosInstance.post('/v1/properties/create-full', body).then(r => r.data?.data ?? r.data ?? r)
+

@@ -1,1342 +1,1560 @@
 export const PrincipleTokenABI = [
   {
-    type: 'constructor',
-    inputs: [
+    "type": "constructor",
+    "inputs": [
       {
-        name: 'principleAsset_',
-        type: 'address',
-        internalType: 'address',
+        "name": "principleAsset_",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'fundraiseFactory_',
-        type: 'address',
-        internalType: 'address',
+        "name": "fundraiseFactory_",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'settlement_',
-        type: 'address',
-        internalType: 'address',
+        "name": "settlement_",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'guardFactory_',
-        type: 'address',
-        internalType: 'address',
+        "name": "guardFactory_",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '_positionManager',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "_positionManager",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'nonpayable',
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'BPS',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "BPS",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint16',
-        internalType: 'uint16',
-      },
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'admin',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "accumulatedYieldPerToken",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'balanceOf',
-    inputs: [
+    "type": "function",
+    "name": "acknowledgeReport",
+    "inputs": [
       {
-        name: 'account',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'id',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'balanceOfBatch',
-    inputs: [
+    "type": "function",
+    "name": "admin",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'accounts',
-        type: 'address[]',
-        internalType: 'address[]',
-      },
-      {
-        name: 'ids',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'buyPresale',
-    inputs: [
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [
       {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'amount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'deployGuard',
-    inputs: [
+    "type": "function",
+    "name": "balanceOfBatch",
+    "inputs": [
       {
-        name: 'name_',
-        type: 'string',
-        internalType: 'string',
+        "name": "accounts",
+        "type": "address[]",
+        "internalType": "address[]"
       },
       {
-        name: 'symbol_',
-        type: 'string',
-        internalType: 'string',
-      },
-      {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'sqrtPriceX96',
-        type: 'uint160',
-        internalType: 'uint160',
-      },
-      {
-        name: 'floorTick',
-        type: 'int24',
-        internalType: 'int24',
-      },
+        "name": "ids",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'fundraiseFactory',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "buyPresale",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'contract IFundraiseFactory',
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'getIdToPosition',
-    inputs: [
+    "type": "function",
+    "name": "claimYield",
+    "inputs": [
       {
-        name: 'id',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "deployGuard",
+    "inputs": [
       {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct Position',
-        components: [
+        "name": "name_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "symbol_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sqrtPriceX96",
+        "type": "uint160",
+        "internalType": "uint160"
+      },
+      {
+        "name": "floorTick",
+        "type": "int24",
+        "internalType": "int24"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "distributeYield",
+    "inputs": [
+      {
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "fundraiseFactory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IFundraiseFactory"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getIdToPosition",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Position",
+        "components": [
           {
-            name: 'owner',
-            type: 'address',
-            internalType: 'address',
+            "name": "owner",
+            "type": "address",
+            "internalType": "address"
           },
           {
-            name: 'tokenId',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'timestamp',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "timestamp",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'expiry',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'pool',
-            type: 'address',
-            internalType: 'address',
+            "name": "pool",
+            "type": "address",
+            "internalType": "address"
           },
           {
-            name: 'presaleAmount',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "presaleAmount",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'totalSupply',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "totalSupply",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'presalePrice',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "presalePrice",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'guard',
-            type: 'address',
-            internalType: 'address',
+            "name": "guard",
+            "type": "address",
+            "internalType": "address"
           },
           {
-            name: 'yieldToken',
-            type: 'address',
-            internalType: 'address',
-          },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'guardFactory',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'contract IGuardFactory',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'initialize',
-    inputs: [
-      {
-        name: 'adminOwner',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'admin_',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'uri',
-        type: 'string',
-        internalType: 'string',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'isApprovedForAll',
-    inputs: [
-      {
-        name: 'account',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'operator',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'mintAsset',
-    inputs: [
-      {
-        name: 'to',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'mintPrinciple',
-    inputs: [
-      {
-        name: 'input',
-        type: 'tuple',
-        internalType: 'struct PositionInput',
-        components: [
-          {
-            name: 'totalSupply',
-            type: 'uint8',
-            internalType: 'enum PrincipleSupply',
+            "name": "yieldToken",
+            "type": "address",
+            "internalType": "address"
           },
           {
-            name: 'presaleAmount',
-            type: 'uint16',
-            internalType: 'uint16',
+            "name": "holderYieldBPS",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "baselineYieldBPS",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'tokenId',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "yieldPeriodSeconds",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'presalePrice',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "reportPeriodSeconds",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'holderYieldBPS',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "feeType",
+            "type": "uint8",
+            "internalType": "enum FeeType"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "guardFactory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IGuardFactory"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "initialize",
+    "inputs": [
+      {
+        "name": "adminOwner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "admin_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "uri",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isApprovedForAll",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastReport",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastYieldDistribution",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "mintAsset",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "mintPrinciple",
+    "inputs": [
+      {
+        "name": "input",
+        "type": "tuple",
+        "internalType": "struct PositionInput",
+        "components": [
+          {
+            "name": "totalSupply",
+            "type": "uint8",
+            "internalType": "enum PrincipleSupply"
           },
           {
-            name: 'baselineYieldBPS',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "presaleAmount",
+            "type": "uint16",
+            "internalType": "uint16"
           },
           {
-            name: 'yieldPeriodSeconds',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'reportPeriodSeconds',
-            type: 'uint256',
-            internalType: 'uint256',
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
-            name: 'feeType',
-            type: 'uint8',
-            internalType: 'enum FeeType',
+            "name": "presalePrice",
+            "type": "uint256",
+            "internalType": "uint256"
           },
-        ],
-      },
+          {
+            "name": "holderYieldBPS",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "baselineYieldBPS",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "yieldPeriodSeconds",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "reportPeriodSeconds",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "feeType",
+            "type": "uint8",
+            "internalType": "enum FeeType"
+          }
+        ]
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'onERC1155BatchReceived',
-    inputs: [
+    "type": "function",
+    "name": "onERC1155BatchReceived",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
-        name: '',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
-        name: '',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'bytes4',
-        internalType: 'bytes4',
-      },
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
     ],
-    stateMutability: 'pure',
+    "stateMutability": "pure"
   },
   {
-    type: 'function',
-    name: 'onERC1155Received',
-    inputs: [
+    "type": "function",
+    "name": "onERC1155Received",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'bytes4',
-        internalType: 'bytes4',
-      },
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
     ],
-    stateMutability: 'pure',
+    "stateMutability": "pure"
   },
   {
-    type: 'function',
-    name: 'owner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'positionManager',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "platformTreasury",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'contract INonfungiblePositionManager',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'principleAsset',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "positionManager",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'contract IPrincipleAsset',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "contract INonfungiblePositionManager"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'renounceOwnership',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'safeBatchTransferFrom',
-    inputs: [
+    "type": "function",
+    "name": "principleAsset",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'from',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'to',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'ids',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: 'values',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: 'data',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "contract IPrincipleAsset"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'safeTransferFrom',
-    inputs: [
+    "type": "function",
+    "name": "registerProperty",
+    "inputs": [
       {
-        name: 'from',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'to',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'id',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'value',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'data',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
+        "name": "metadataURI",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'sellPrinciple',
-    inputs: [
+    "outputs": [
       {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'setApprovalForAll',
-    inputs: [
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "safeBatchTransferFrom",
+    "inputs": [
       {
-        name: 'operator',
-        type: 'address',
-        internalType: 'address',
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'approved',
-        type: 'bool',
-        internalType: 'bool',
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
       },
+      {
+        "name": "ids",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "values",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'settlement',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "safeTransferFrom",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'contract IERC20',
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
       },
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'supportsInterface',
-    inputs: [
+    "type": "function",
+    "name": "sellPrinciple",
+    "inputs": [
       {
-        name: 'interfaceId',
-        type: 'bytes4',
-        internalType: 'bytes4',
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setApprovalForAll",
+    "inputs": [
       {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
       },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'tokenId',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "setPlatformTreasury",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "treasury_",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'transferOwnership',
-    inputs: [
+    "type": "function",
+    "name": "settlement",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'newOwner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'uri',
-    inputs: [
+    "type": "function",
+    "name": "supportsInterface",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "interfaceId",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'string',
-        internalType: 'string',
-      },
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'ApprovalForAll',
-    inputs: [
+    "type": "function",
+    "name": "tokenId",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'account',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'operator',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'approved',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'Initialized',
-    inputs: [
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
       {
-        name: 'version',
-        type: 'uint64',
-        indexed: false,
-        internalType: 'uint64',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
+    "type": "function",
+    "name": "unwrap",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'PostionRegistered',
-    inputs: [
+    "type": "function",
+    "name": "uri",
+    "inputs": [
       {
-        name: 'sender',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'tokenId',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'deadline',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'pool',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'presaleAmount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'mintAmount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'PresaleBought',
-    inputs: [
+    "outputs": [
       {
-        name: 'tokenId',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'sender',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'PrincipleAssetMinted',
-    inputs: [
+    "type": "function",
+    "name": "wrap",
+    "inputs": [
       {
-        name: 'to',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
+        "name": "tokenId_",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'tokenId',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'PrincipleGuardDeployed',
-    inputs: [
+    "type": "function",
+    "name": "yieldDebt",
+    "inputs": [
       {
-        name: 'guard',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'yield',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'floorTick',
-        type: 'int24',
-        indexed: false,
-        internalType: 'int24',
-      },
-      {
-        name: 'bal',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'SupplySet',
-    inputs: [
+    "outputs": [
       {
-        name: 'amount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'TransferBatch',
-    inputs: [
+    "type": "event",
+    "name": "ApprovalForAll",
+    "inputs": [
       {
-        name: 'operator',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'from',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "operator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'to',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'ids',
-        type: 'uint256[]',
-        indexed: false,
-        internalType: 'uint256[]',
-      },
-      {
-        name: 'values',
-        type: 'uint256[]',
-        indexed: false,
-        internalType: 'uint256[]',
-      },
+        "name": "approved",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'TransferSingle',
-    inputs: [
+    "type": "event",
+    "name": "Initialized",
+    "inputs": [
       {
-        name: 'operator',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'from',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'to',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'id',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'value',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "version",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'URI',
-    inputs: [
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
       {
-        name: 'value',
-        type: 'string',
-        indexed: false,
-        internalType: 'string',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'id',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'AlreadyDeployed',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'AmountShouldNotBZero',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'ERC1155InsufficientBalance',
-    inputs: [
+    "type": "event",
+    "name": "PlatformFeeMinted",
+    "inputs": [
       {
-        name: 'sender',
-        type: 'address',
-        internalType: 'address',
+        "name": "treasury",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'balance',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
-        name: 'needed',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'tokenId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155InvalidApprover',
-    inputs: [
+    "type": "event",
+    "name": "PostionRegistered",
+    "inputs": [
       {
-        name: 'approver',
-        type: 'address',
-        internalType: 'address',
+        "name": "sender",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pool",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "presaleAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "mintAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155InvalidArrayLength',
-    inputs: [
+    "type": "event",
+    "name": "PresaleBought",
+    "inputs": [
       {
-        name: 'idsLength',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
-        name: 'valuesLength',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155InvalidOperator',
-    inputs: [
+    "type": "event",
+    "name": "PrincipleAssetMinted",
+    "inputs": [
       {
-        name: 'operator',
-        type: 'address',
-        internalType: 'address',
+        "name": "to",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155InvalidReceiver',
-    inputs: [
+    "type": "event",
+    "name": "PrincipleGuardDeployed",
+    "inputs": [
       {
-        name: 'receiver',
-        type: 'address',
-        internalType: 'address',
+        "name": "guard",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       },
+      {
+        "name": "yield",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "floorTick",
+        "type": "int24",
+        "indexed": false,
+        "internalType": "int24"
+      },
+      {
+        "name": "bal",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155InvalidSender',
-    inputs: [
+    "type": "event",
+    "name": "PropertyRegistered",
+    "inputs": [
       {
-        name: 'sender',
-        type: 'address',
-        internalType: 'address',
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "metadataURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1155MissingApprovalForAll',
-    inputs: [
+    "type": "event",
+    "name": "ReportAcknowledged",
+    "inputs": [
       {
-        name: 'operator',
-        type: 'address',
-        internalType: 'address',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
-        name: 'owner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'FinishedFundraise',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidBPS',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidInitialization',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidPrincipleSupply',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'Irrelevant',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NotAnAdmin',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NotEnoughSupply',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NotInitializing',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NotYetMatured',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'OwnableInvalidOwner',
-    inputs: [
+    "type": "event",
+    "name": "SupplySet",
+    "inputs": [
       {
-        name: 'owner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'OwnableUnauthorizedAccount',
-    inputs: [
+    "type": "event",
+    "name": "TransferBatch",
+    "inputs": [
       {
-        name: 'account',
-        type: 'address',
-        internalType: 'address',
+        "name": "operator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
+      {
+        "name": "from",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "ids",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "values",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      }
     ],
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'PoolAddressIsZero',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'TokenIdIsNotExist',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'UneligibleBalance',
-    inputs: [],
-  },
-  // ─── New functions (seamless minting) ──────────────────────────────────────
-  {
-    type: 'function',
-    name: 'registerProperty',
-    inputs: [
+    "type": "event",
+    "name": "TransferSingle",
+    "inputs": [
       {
-        name: 'metadataURI',
-        type: 'string',
-        internalType: 'string',
+        "name": "operator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
+      {
+        "name": "from",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "URI",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "value",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       },
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'nonpayable',
+    "anonymous": false
   },
   {
-    type: 'function',
-    name: 'distributeYield',
-    inputs: [
+    "type": "event",
+    "name": "Unwrapped",
+    "inputs": [
       {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
-        name: 'amount',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "anonymous": false
   },
   {
-    type: 'function',
-    name: 'claimYield',
-    inputs: [
+    "type": "event",
+    "name": "Wrapped",
+    "inputs": [
       {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "anonymous": false
   },
   {
-    type: 'function',
-    name: 'acknowledgeReport',
-    inputs: [
+    "type": "event",
+    "name": "YieldDistributed",
+    "inputs": [
       {
-        name: 'tokenId_',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
+      {
+        "name": "holderShare",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "baselineShare",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "platformShare",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  // ─── New events (seamless minting) ─────────────────────────────────────────
-  {
-    type: 'event',
-    name: 'PropertyRegistered',
-    inputs: [
-      {
-        name: 'owner',
-        type: 'address',
-        internalType: 'address',
-        indexed: true,
-      },
-      {
-        name: 'tokenId',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: true,
-      },
-      {
-        name: 'metadataURI',
-        type: 'string',
-        internalType: 'string',
-        indexed: false,
-      },
-    ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'YieldDistributed',
-    inputs: [
+    "type": "error",
+    "name": "AlreadyDeployed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AmountShouldNotBZero",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ERC1155InsufficientBalance",
+    "inputs": [
       {
-        name: 'tokenId',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: true,
+        "name": "sender",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'holderShare',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: false,
+        "name": "balance",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'baselineShare',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: false,
+        "name": "needed",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'platformShare',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: false,
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1155InvalidApprover",
+    "inputs": [
+      {
+        "name": "approver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1155InvalidArrayLength",
+    "inputs": [
+      {
+        "name": "idsLength",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'timestamp',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: false,
-      },
-    ],
-    anonymous: false,
+        "name": "valuesLength",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   },
   {
-    type: 'event',
-    name: 'ReportAcknowledged',
-    inputs: [
+    "type": "error",
+    "name": "ERC1155InvalidOperator",
+    "inputs": [
       {
-        name: 'tokenId',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: true,
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1155InvalidReceiver",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1155InvalidSender",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1155MissingApprovalForAll",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'timestamp',
-        type: 'uint256',
-        internalType: 'uint256',
-        indexed: false,
-      },
-    ],
-    anonymous: false,
-  },
-  // ─── New errors (seamless minting) ─────────────────────────────────────────
-  {
-    type: 'error',
-    name: 'NotPositionOwner',
-    inputs: [],
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
   },
   {
-    type: 'error',
-    name: 'ReportSLABreached',
-    inputs: [],
+    "type": "error",
+    "name": "InvalidBPS",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'YieldPeriodNotElapsed',
-    inputs: [],
+    "type": "error",
+    "name": "InvalidInitialization",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'TreasuryNotSet',
-    inputs: [],
+    "type": "error",
+    "name": "InvalidPrincipleSupply",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'Irrelevant',
-    inputs: [],
+    "type": "error",
+    "name": "Irrelevant",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'AlreadyDeployed',
-    inputs: [],
+    "type": "error",
+    "name": "NotAnAdmin",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'NotYetMatured',
-    inputs: [],
+    "type": "error",
+    "name": "NotEnoughSupply",
+    "inputs": []
   },
-] as const
-
-export default PrincipleTokenABI
+  {
+    "type": "error",
+    "name": "NotInitializing",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotPositionOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotYetMatured",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "PoolAddressIsZero",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReportSLABreached",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TokenIdIsNotExist",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TreasuryNotSet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UneligibleBalance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "YieldPeriodNotElapsed",
+    "inputs": []
+  }
+] as const;
