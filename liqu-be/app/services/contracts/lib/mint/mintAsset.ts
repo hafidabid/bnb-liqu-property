@@ -2,7 +2,7 @@
 import PrincipleTokenABI from '../../abis/PrincipleTokenABI.js'
 import walletClient from '../../client/walletClient.js'
 import publicClient from '../../client/publicClient.js'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 
 const mintAsset = async (to: `0x${string}`, ptAddress: `0x${string}`) => {
   const account = walletClient.account!
@@ -12,7 +12,7 @@ const mintAsset = async (to: `0x${string}`, ptAddress: `0x${string}`) => {
   })
 
   const tx = await walletClient.writeContract({
-    chain: baseSepolia,
+    chain: bscTestnet,
     account,
     address: ptAddress,
     abi: PrincipleTokenABI,

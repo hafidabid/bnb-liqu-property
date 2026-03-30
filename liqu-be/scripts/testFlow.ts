@@ -5,7 +5,7 @@
  * - deadline is filled with a random number (feature disabled)
  */
 import 'dotenv/config'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 import mintAsset, {
   getNextAssetTokenId,
 } from '../app/services/contracts/lib/mint/mintAsset.js'
@@ -31,7 +31,7 @@ import {
 } from '../app/services/contracts/client/walletClient.js'
 import publicClient from '../app/services/contracts/client/publicClient.js'
 
-const CHAIN_ID = baseSepolia.id
+const CHAIN_ID = bscTestnet.id
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 

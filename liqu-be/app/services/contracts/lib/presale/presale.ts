@@ -8,7 +8,7 @@ import {
   userWalletClient,
   aliceWalletClient,
 } from '../../client/walletClient.js'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 
 export const createPresaleTx = async (
   input: PresaleInput,
@@ -57,7 +57,7 @@ export const submitPresaleTx = async (tx: `0x${string}`) => {
 export const approveUSDCPresale = async (amount: number, assetAddress: `0x${string}`, usdcAddress: `0x${string}`) => {
   const to = assetAddress
   const tx = await userWalletClient.writeContract({
-    chain: baseSepolia,
+    chain: bscTestnet,
     account: userWalletClient.account,
     address: usdcAddress,
     abi: MockUSDCABI,
@@ -72,7 +72,7 @@ export const approveUSDCPresale = async (amount: number, assetAddress: `0x${stri
 export const approveUSDCForBuyer = async (amount: number, ptAddress: `0x${string}`, usdcAddress: `0x${string}`) => {
   const spender = ptAddress
   const tx = await aliceWalletClient.writeContract({
-    chain: baseSepolia,
+    chain: bscTestnet,
     account: aliceWalletClient.account,
     address: usdcAddress,
     abi: MockUSDCABI,

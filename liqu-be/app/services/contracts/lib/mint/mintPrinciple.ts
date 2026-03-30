@@ -5,7 +5,7 @@ import { encodeFunctionData, TransactionRequest } from 'viem'
 import { MintPrincipleInput } from '../interface.js'
 import PrincipleAssetABI from '../../abis/PrincipleAssetABI.js'
 import { userWalletClient } from '../../client/walletClient.js'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 import { Prisma } from '@prisma/client'
 
 export const createMintPrincipleTx = async (
@@ -106,7 +106,7 @@ export const createApproveMintPrincipleTx = async (
 export const approveMintPrinciple = async (tokenId: number, ptAddress: `0x${string}`, assetAddress: `0x${string}`) => {
   const to = ptAddress
   const tx = await userWalletClient.writeContract({
-    chain: baseSepolia,
+    chain: bscTestnet,
     account: userWalletClient.account,
     address: assetAddress,
     abi: PrincipleAssetABI,

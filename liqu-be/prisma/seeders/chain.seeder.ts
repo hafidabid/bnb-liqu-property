@@ -6,39 +6,39 @@ const prisma = new PrismaClient()
 export async function seedChains() {
   console.log('Seeding chains, rpcs, and contracts...')
 
-  // ─── Base Sepolia ────────────────────────────────────────────────────────
-  const baseSepolia = await prisma.chain.upsert({
-    where: { chainId: '84532' },
+  // ─── Binance Smart Chain Testnet ─────────────────────────────────────────
+  const bscTestnet = await prisma.chain.upsert({
+    where: { chainId: '97' },
     update: {
-      blockExplorerName: 'Blockscout',
-      blockExplorerUrl: 'https://base-sepolia.blockscout.com',
+      blockExplorerName: 'BscScan',
+      blockExplorerUrl: 'https://testnet.bscscan.com',
     },
     create: {
-      chainId: '84532',
-      name: 'Base Sepolia',
-      shortName: 'base-sepolia',
-      nativeCurrencyName: 'Ether',
-      nativeCurrencySymbol: 'ETH',
+      chainId: '97',
+      name: 'Binance Smart Chain Testnet',
+      shortName: 'bsc-testnet',
+      nativeCurrencyName: 'Test BNB',
+      nativeCurrencySymbol: 'tBNB',
       nativeCurrencyDecimals: 18,
-      blockExplorerName: 'Blockscout',
-      blockExplorerUrl: 'https://base-sepolia.blockscout.com',
+      blockExplorerName: 'BscScan',
+      blockExplorerUrl: 'https://testnet.bscscan.com',
       isTestnet: true,
       isActive: true,
     },
   })
 
-  console.log(`Chain upserted: ${baseSepolia.name} (chainId=${baseSepolia.chainId})`)
+  console.log(`Chain upserted: ${bscTestnet.name} (chainId=${bscTestnet.chainId})`)
 
   // ─── RPCs ────────────────────────────────────────────────────────────────
   // Priority 0 = highest priority. PAID tier: for contract calls, event logs,
   // tx simulation, tx status. FREE tier: for block data, gas price, balances.
   const paidRpcUrl = [
-    'https://base-sepolia.g.alchemy.com/v2/mBBP3AE9uLK2Tbxwsp1SeD8PQ7tpwwNt',
-    'https://base-sepolia.infura.io/v3/1f097f2dcd3b4e25b67188d9e65b084c'
+    'https://data-seed-prebsc-1-s1.binance.org:8545',
+    'https://endpoints.omniatech.io/v1/bsc/testnet/public'
   ]
   for (const url of paidRpcUrl) {
     const isExist = await prisma.rpc.findFirst({
-      where: { url, chainId: '84532' },
+      where: { url, chainId: '97' },
     })
     if (isExist) {
       // udpate
@@ -46,7 +46,7 @@ export async function seedChains() {
         where: { id: isExist.id },
         data: {
           url,
-          chainId: '84532',
+          chainId: '97',
           isActive: true,
           priority: 0,
           tier: 'PAID',
@@ -57,7 +57,7 @@ export async function seedChains() {
     await prisma.rpc.create({
       data: {
         url,
-        chainId: '84532',
+        chainId: '97',
         isActive: true,
         priority: 0,
         tier: 'PAID',
@@ -67,19 +67,19 @@ export async function seedChains() {
 
   // Public free RPC — used for cheap reads (block number, gas price, balances).
   // Falls back to paid if no free RPC is available, and vice versa.
-  const freeRpcUrl = 'https://sepolia.base.org'
+  const freeRpcUrl = 'https://data-seed-prebsc-2-s1.binance.org:8545'
   await prisma.rpc.upsert({
     where: { id: 2 },
     update: { url: freeRpcUrl, tier: 'FREE' },
     create: {
       url: freeRpcUrl,
-      chainId: '84532',
+      chainId: '97',
       isActive: true,
       priority: 0,
       tier: 'FREE',
     },
   })
-  console.log('RPCs upserted for Base Sepolia (PAID: Infura, FREE: public)')
+  console.log('RPCs upserted for BSC Testnet (PAID: public endpoints, FREE: public)')
 
   // ─── Contracts ───────────────────────────────────────────────────────────
   // const contracts = [

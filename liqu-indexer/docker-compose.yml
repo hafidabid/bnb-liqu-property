@@ -32,10 +32,10 @@ services:
     environment:
       DATABASE_URL: postgresql://ponder:ponder@db:5432/ponder
       PONDER_RPC_URL_1: ${PONDER_RPC_URL_1}
-      PONDER_RPC_URL_84532: ${PONDER_RPC_URL_84532}
+      PONDER_RPC_URL_97: ${PONDER_RPC_URL_97}
       CH_PT: ${CH_PT}
       CH_ASSET: ${CH_ASSET}
-      SWAP_ROUTER_PT_BASE_SEPOLIA: ${SWAP_ROUTER_PT_BASE_SEPOLIA}
+      SWAP_ROUTER_PT_BSC_TESTNET: ${SWAP_ROUTER_PT_BSC_TESTNET}
     env_file:
       - .env
     deploy:

@@ -4,7 +4,7 @@
  * - RouterInput: token0 = yieldToken, zeroForOne: false, amountIn: 10e6, amountOut: 0, deadline.
  */
 import 'dotenv/config'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 import {
   createSwapTx,
   submitSwapTx,
@@ -15,7 +15,7 @@ import publicClient from '../app/services/contracts/client/publicClient.js'
 import { CONTRACT_ADDRESSES } from '../app/services/contracts/addresses.js'
 import MockUSDCABI from '../app/services/contracts/abis/MockUSDCABI.js'
 
-const CHAIN_ID = baseSepolia.id
+const CHAIN_ID = bscTestnet.id
 
 /** yieldToken address to test (from position) */
 const YIELD_TOKEN_ADDRESS =
@@ -48,7 +48,7 @@ async function runTestFlow() {
   const usdcAddress = CONTRACT_ADDRESSES[84532].CH_USDC as `0x${string}`
 
   const approveTxHash = await aliceWalletClient.writeContract({
-    chain: baseSepolia,
+    chain: bscTestnet,
     account: aliceWalletClient.account!,
     address: usdcAddress,
     abi: MockUSDCABI,

@@ -19,20 +19,11 @@ export default createConfig({
       id: 1,
       rpc: "https://eth.llamarpc.com",
     },
-    baseSepolia: {
-      id: 84532,
+    bscTestnet: {
+      id: 97,
       rpc: fallback([
-        http("https://base-sepolia-rpc.publicnode.com"),
-        http("https://base-sepolia.api.onfinality.io/public"),
-        http("https://base-testnet.api.pocket.network"),
-        http("https://base-sepolia-public.nodies.app"),
-        http("https://rpc.sentio.xyz/base-sepolia"),
-        http("https://base-sepolia.gateway.tenderly.co"),
-        http("https://base-sepolia.drpc.org"),
-        http("https://sepolia.base.org"),
-        http("https://base-sepolia.therpc.io"),
-        http("https://public.stackup.sh/api/v1/node/base-sepolia"),
-        http("https://rpc.notadegen.com/base/sepolia"),
+        http(process.env.PONDER_RPC_URL_97 || "https://data-seed-prebsc-1-s1.binance.org:8545"),
+        http("https://data-seed-prebsc-2-s1.binance.org:8545"),
       ]),
     },
     hederaTestnet: {
@@ -44,9 +35,9 @@ export default createConfig({
     PrincipleToken: {
       abi: PrincipleTokenABI,
       chain: {
-        baseSepolia: {
+        bscTestnet: {
           address: process.env.CH_PT! as `0x${string}`,
-          startBlock: 38438500,
+          startBlock: 40000000,
         },
         hederaTestnet: {
           address: process.env.HBAR_PT! as `0x${string}`,
@@ -57,9 +48,9 @@ export default createConfig({
     PrincipleAsset: {
       abi: PrincipleAssetABI,
       chain: {
-        baseSepolia: {
+        bscTestnet: {
           address: process.env.CH_ASSET! as `0x${string}`,
-          startBlock: 38438500,
+          startBlock: 40000000,
         },
         hederaTestnet: {
           address: process.env.HBAR_ASSET! as `0x${string}`,
@@ -71,9 +62,9 @@ export default createConfig({
     FundraiseFactory: {
       abi: FundraiseFactoryABI,
       chain: {
-        baseSepolia: {
+        bscTestnet: {
           address: process.env.CH_FACTORY! as `0x${string}`,
-          startBlock: 38438500,
+          startBlock: 40000000,
         },
         hederaTestnet: {
           address: process.env.HBAR_FACTORY! as `0x${string}`,
@@ -84,9 +75,9 @@ export default createConfig({
     PrincipleRouter: {
       abi: PrincipleRouterABI,
       chain: {
-        baseSepolia: {
-          address: process.env.SWAP_ROUTER_PT_BASE_SEPOLIA! as `0x${string}`,
-          startBlock: 38438500,
+        bscTestnet: {
+          address: process.env.SWAP_ROUTER_PT_BSC_TESTNET! as `0x${string}`,
+          startBlock: 40000000,
         },
         // hederaTestnet: {
         //   address: process.env.HBAR_ROUTER! as `0x${string}`,

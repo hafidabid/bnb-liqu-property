@@ -1,5 +1,5 @@
 import { createWalletClient, http } from 'viem'
-import { baseSepolia } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 
 const account = privateKeyToAccount(
@@ -15,20 +15,20 @@ const aliceAccount = privateKeyToAccount(
 )
 
 const walletClient = createWalletClient({
-  chain: baseSepolia,
-  transport: http(process.env.BASE_SEPOLIA_RPC_URL as `https://${string}`),
+  chain: bscTestnet,
+  transport: http(process.env.BSC_TESTNET_RPC_URL as `https://${string}`),
   account,
 })
 
 export const userWalletClient = createWalletClient({
-  chain: baseSepolia,
-  transport: http(process.env.BASE_SEPOLIA_RPC_URL as `https://${string}`),
+  chain: bscTestnet,
+  transport: http(process.env.BSC_TESTNET_RPC_URL as `https://${string}`),
   account: userAccount,
 })
 
 export const aliceWalletClient = createWalletClient({
-  chain: baseSepolia,
-  transport: http(process.env.BASE_SEPOLIA_RPC_URL as `https://${string}`),
+  chain: bscTestnet,
+  transport: http(process.env.BSC_TESTNET_RPC_URL as `https://${string}`),
   account: aliceAccount,
 })
 
