@@ -418,6 +418,54 @@ contract PrincipleToken is
         emit Events.SupplySet(amount_);
     }
 
+    // --- WRAP / UNWRAP ---
+
+    function wrap(uint256 tokenId_, uint256 amount) external {
+        Position storage position = LibPrincipleFacet.s().idToPosition[
+            tokenId_
+        ];
+        if (position.yieldToken == address(0))
+            revert Errors.TokenIdIsNotExist();
+        if (amount == 0) revert Errors.AmountShouldNotBZero();
+
+        // 1. Escrow PrincipleToken (ERC1155) into this contract
+        this.safeTransferFrom(msg.sender, address(this), tokenId_, amount, "");
+
+        // 2. Calculate YieldToken equivalent (1 fraction = presalePrice * 1e12 YieldTokens)
+        // presalePrice is 6 decimals, times 1e12 gives 18 decimals per USDC value.
+        uint256 yieldAmount = amount * position.presalePrice * 1e12;
+
+        // 3. Mint YieldToken to sender
+        IYieldToken(position.yieldToken).mint(msg.sender, yieldAmount);
+
+        emit Events.Wrapped(tokenId_, msg.sender, amount);
+    }
+
+    function unwrap(uint256 tokenId_, uint256 amount) external {
+        Position storage position = LibPrincipleFacet.s().idToPosition[
+            tokenId_
+        ];
+        if (position.yieldToken == address(0))
+            revert Errors.TokenIdIsNotExist();
+        if (amount == 0) revert Errors.AmountShouldNotBZero();
+
+        // 1. Calculate YieldToken equivalent
+        uint256 yieldAmount = amount * position.presalePrice * 1e12;
+
+        // 2. Take YieldToken from sender to this contract and burn it
+        IYieldToken(position.yieldToken).transferFrom(
+            msg.sender,
+            address(this),
+            yieldAmount
+        );
+        IYieldToken(position.yieldToken).burn(yieldAmount);
+
+        // 3. Return PrincipleToken (ERC1155) to sender
+        this.safeTransferFrom(address(this), msg.sender, tokenId_, amount, "");
+
+        emit Events.Unwrapped(tokenId_, msg.sender, amount);
+    }
+
     /// @notice Handles the receipt of a single ERC1155 token type
     /// @return bytes4 The function selector to confirm the token transfer
     function onERC1155Received(

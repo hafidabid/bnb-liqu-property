@@ -8,12 +8,16 @@ import {Events} from "./libraries/Events.sol";
 
 contract YieldToken is ERC20, Ownable {
     error BasePriceAddressCannotBeZero();
-    error OnlyBasePriceCanMint();
+    error OnlyBasePriceOrOwnerCanMint();
     error InsufficientBalance();
 
     address public basePrice;
 
-    constructor(string memory name, string memory symbol, address owner_) ERC20(name, symbol) Ownable(owner_) {}
+    constructor(
+        string memory name,
+        string memory symbol,
+        address owner_
+    ) ERC20(name, symbol) Ownable(owner_) {}
 
     function setBasePrice(address basePrice_) external onlyOwner {
         address pre = basePrice;
@@ -23,7 +27,8 @@ contract YieldToken is ERC20, Ownable {
     }
 
     function mint(address to, uint256 amount) public {
-        if (msg.sender != basePrice) revert OnlyBasePriceCanMint();
+        if (msg.sender != basePrice && msg.sender != owner())
+            revert OnlyBasePriceOrOwnerCanMint();
         _mint(to, amount);
     }
 
