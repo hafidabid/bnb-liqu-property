@@ -34,6 +34,11 @@ export default function (
 
   // JWT protected
   app.post(
+    '/create-full',
+    { preHandler: [jwtAuth] },
+    PropertyController.createPropertyFull
+  )
+  app.post(
     '/',
     { ...PropertySchema.createProperty, preHandler: [jwtAuth] },
     PropertyController.createProperty

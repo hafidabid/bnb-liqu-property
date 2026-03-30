@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import {
   createProperty,
+  createPropertyFull,
   listProperties,
   getProperty,
   updateProperty,
@@ -32,6 +33,17 @@ const PropertyController = {
       const user = (request as any).user as { walletAddress: string }
       const body = request.body as any
       const data = await createProperty(body, user.walletAddress)
+      reply.status(200).send({ success: true, data })
+    } catch (error: any) {
+      reply.status(400).send({ success: false, error: error.message })
+    }
+  },
+
+  createPropertyFull: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = (request as any).user as { walletAddress: string }
+      const body = request.body as any
+      const data = await createPropertyFull(body, user.walletAddress)
       reply.status(200).send({ success: true, data })
     } catch (error: any) {
       reply.status(400).send({ success: false, error: error.message })

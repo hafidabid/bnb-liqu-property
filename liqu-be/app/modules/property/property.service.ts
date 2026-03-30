@@ -15,6 +15,7 @@ import {
   SubmitYieldTxInput,
   SubmitYieldAndReportInput,
   SubmitDeployGuardTxInput,
+  CreatePropertyFullInput,
 } from './property.interface.js'
 
 export const createProperty = async (
@@ -58,6 +59,128 @@ export const createProperty = async (
     },
   })
 }
+
+// ─── Atomic full-property creation (single endpoint) ─────────────────────────
+
+const YOUTUBE_PATTERN_SVC = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//
+
+export const createPropertyFull = async (
+  input: CreatePropertyFullInput,
+  ownerAddress: string
+) => {
+  if (input.latitude < -90 || input.latitude > 90)
+    throw new Error('latitude must be between -90 and 90')
+  if (input.longitude < -180 || input.longitude > 180)
+    throw new Error('longitude must be between -180 and 180')
+
+  // Duplicate check (outside transaction — fast fail)
+  const existing = await prisma.property.findFirst({
+    where: { ownerAddress: ownerAddress.toLowerCase(), name: input.name },
+  })
+  if (existing) throw new Error('Property already exists')
+
+  // Validate BPS before entering transaction
+  const platformBPS = input.subscriptionPlan === 'MONTHLY' ? 0 : 300
+  const maxAllowed = 10000 - platformBPS
+  if ((input.sla.holderYieldBPS + input.sla.baselineYieldBPS) > maxAllowed)
+    throw new Error(
+      `holderYieldBPS + baselineYieldBPS must not exceed ${maxAllowed} for the selected subscription plan`
+    )
+
+  return prisma.$transaction(async (tx) => {
+    // 1. Upsert user
+    await tx.user.upsert({
+      where: { walletAddress: ownerAddress.toLowerCase() },
+      update: {},
+      create: { walletAddress: ownerAddress.toLowerCase() },
+    })
+
+    // 2. Create property
+    const property = await tx.property.create({
+      data: {
+        ownerAddress: ownerAddress.toLowerCase(),
+        name: input.name,
+        description: input.description,
+        propertyType: input.propertyType,
+        address: input.address,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        totalAreaSqm: input.totalAreaSqm,
+        legalEntityName: input.legalEntityName,
+        legalRegistrationId: input.legalRegistrationId,
+        legalNotaryName: input.legalNotaryName,
+        prospectusMarkdown: input.prospectusMarkdown,
+        salePeriodStart: input.salePeriodStart ? new Date(input.salePeriodStart) : undefined,
+        salePeriodEnd: input.salePeriodEnd ? new Date(input.salePeriodEnd) : undefined,
+        targetFundUSD: input.targetFundUSD,
+        status: input.publishNow ? PropertyStatus.PENDING_REVIEW : PropertyStatus.DRAFT,
+      },
+    })
+
+    // 3. Create subscription
+    await tx.platformSubscription.create({
+      data: {
+        propertyId: property.id,
+        ownerAddress: ownerAddress.toLowerCase(),
+        plan: input.subscriptionPlan,
+      },
+    })
+
+    // 4. Create SLA
+    await tx.propertySLA.create({
+      data: {
+        propertyId: property.id,
+        yieldPeriodDays: input.sla.yieldPeriodDays,
+        reportPeriodDays: input.sla.reportPeriodDays,
+        holderYieldBPS: input.sla.holderYieldBPS,
+        baselineYieldBPS: input.sla.baselineYieldBPS,
+      },
+    })
+
+    // 5. Link pre-uploaded document assets to this property
+    if (input.documentIds && input.documentIds.length > 0) {
+      await tx.propertyDocument.updateMany({
+        where: {
+          id: { in: input.documentIds },
+          propertyId: null, // only link orphan docs (prevent hijacking)
+        },
+        data: { propertyId: property.id },
+      })
+    }
+
+    // 6. Set thumbnail if provided
+    if (input.thumbnailDocumentId) {
+      await tx.property.update({
+        where: { id: property.id },
+        data: { thumbnailDocumentId: input.thumbnailDocumentId },
+      })
+    }
+
+    // 7. YouTube URL as a document
+    if (input.youtubeUrl && YOUTUBE_PATTERN_SVC.test(input.youtubeUrl)) {
+      await tx.propertyDocument.create({
+        data: {
+          propertyId: property.id,
+          type: 'OTHER',
+          fileName: 'youtube_url',
+          url: input.youtubeUrl,
+        },
+      })
+    }
+
+    // Return full property with relations
+    return tx.property.findUnique({
+      where: { id: property.id },
+      include: {
+        documents: true,
+        sla: true,
+        subscription: true,
+        thumbnailDocument: { select: { id: true, url: true } },
+      },
+    })
+  })
+}
+
 
 export const listProperties = async (page = 1, limit = 20) => {
   return prisma.property.paginate({

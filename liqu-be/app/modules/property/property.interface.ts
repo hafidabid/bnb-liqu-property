@@ -106,3 +106,43 @@ export interface SubmitYieldAndReportInput {
 export interface SubmitDeployGuardTxInput {
   txHash: `0x${string}`
 }
+
+export interface CreatePropertyFullInput {
+  // Basic property info
+  name: string
+  description: string
+  propertyType: string
+  address: string
+  latitude: number
+  longitude: number
+  totalAreaSqm?: number
+  legalEntityName?: string
+  legalRegistrationId?: string
+  legalNotaryName?: string
+  prospectusMarkdown?: string
+  salePeriodStart?: string
+  salePeriodEnd?: string
+  targetFundUSD?: number
+
+  // Pre-uploaded asset IDs to link to this property
+  documentIds?: string[]
+
+  // Which of the uploaded documents is the thumbnail
+  thumbnailDocumentId?: string | null
+
+  // YouTube embed (stored as a document with type OTHER)
+  youtubeUrl?: string
+
+  // Subscription + SLA (required)
+  subscriptionPlan: SubscriptionPlan
+  sla: {
+    yieldPeriodDays: number
+    reportPeriodDays: number
+    holderYieldBPS: number
+    baselineYieldBPS: number
+  }
+
+  // If true, status → PENDING_REVIEW immediately
+  publishNow?: boolean
+}
+

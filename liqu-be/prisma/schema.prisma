@@ -163,13 +163,14 @@ model Property {
 }
 
 model PropertyDocument {
-  id         String       @id @default(cuid())
-  propertyId String
-  property   Property     @relation("PropertyDocuments", fields: [propertyId], references: [id])
-  type       DocumentType
-  fileName   String
-  url        String
-  uploadedAt DateTime     @default(now())
+  id           String        @id @default(cuid())
+  propertyId   String?
+  property     Property?     @relation("PropertyDocuments", fields: [propertyId], references: [id])
+  ownerAddress String?       // set on upload so we can clean up orphans later
+  type         DocumentType
+  fileName     String
+  url          String
+  uploadedAt   DateTime      @default(now())
 
   thumbnailOf Property[] @relation("PropertyThumbnail")
 }

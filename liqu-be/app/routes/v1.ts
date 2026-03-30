@@ -17,6 +17,7 @@ import PropertyController from '#app/modules/property/property.controller'
 import PropertySchema from '#app/modules/property/property.schema'
 import MarketRoute from '#app/modules/market/market.route'
 import PortfolioRoute from '#app/modules/portfolio/portfolio.route'
+import AssetsRoute from '#app/modules/assets/assets.route'
 
 const jwtAuth = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
@@ -42,6 +43,7 @@ export default function (app: FastifyInstance) {
   app.register(IndexerRoute, { prefix: '/indexer' })
   app.register(MarketRoute, { prefix: '/market' })
   app.register(PortfolioRoute, { prefix: '/portfolio' })
+  app.register(AssetsRoute, { prefix: '/assets' })
 
   // Root-level property registration routes (matching existing mint pattern)
   app.post(
