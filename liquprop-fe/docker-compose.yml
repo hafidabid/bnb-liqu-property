@@ -1,5 +1,6 @@
 services:
-  dev:
+  dev-fe-bnb:
+    container_name: dev-fe-bnb
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,6 +9,6 @@ services:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
         - VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN}
     ports:
-      - "3002:80"
+      - "3003:80"
     env_file:
       - .env

@@ -1,5 +1,6 @@
 services:
-  db:
+  db-indexer-bnb:
+    container_name: db-indexer-bnb
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -7,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ponder
       POSTGRES_DB: ponder
     ports:
-      - "5340:5432"   # host 5340 → container 5432 (avoids conflict with local postgres)
+      - "5345:5432"   # host 5340 → container 5432 (avoids conflict with local postgres)
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,15 +23,16 @@ services:
           memory: 512M
 
   indexer:
+    container_name: indexer-bnb
     build: .
     restart: unless-stopped
     depends_on:
-      db:
+      db-indexer-bnb:
         condition: service_healthy
     ports:
-      - "42069:42069"
+      - "60601:42069"
     environment:
-      DATABASE_URL: postgresql://ponder:ponder@db:5432/ponder
+      DATABASE_URL: postgresql://ponder:ponder@db-indexer-bnb:5432/ponder
       PONDER_RPC_URL_1: ${PONDER_RPC_URL_1}
       PONDER_RPC_URL_97: ${PONDER_RPC_URL_97}
       CH_PT: ${CH_PT}
