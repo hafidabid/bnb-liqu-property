@@ -1,3 +1,5 @@
+name: liqu-indexer-bnb
+
 services:
   db-indexer-bnb:
     container_name: db-indexer-bnb
@@ -10,7 +12,7 @@ services:
     # ports:
     #   - "5345:5432"   # host 5340 → container 5432 (avoids conflict with local postgres)
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - indexer_pg_data_bnb:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ponder -d ponder"]
       interval: 5s
@@ -47,4 +49,4 @@ services:
           memory: 1G
 
 volumes:
-  pg_data:
+  indexer_pg_data_bnb:
