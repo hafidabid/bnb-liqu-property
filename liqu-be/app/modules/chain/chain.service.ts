@@ -80,6 +80,7 @@ const ChainService = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(5000),
         })
 
         if (!response.ok) {

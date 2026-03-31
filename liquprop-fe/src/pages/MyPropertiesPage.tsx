@@ -251,8 +251,10 @@ function PropertiesTab({
         ...(registerGasPrice != null ? { gasPrice: registerGasPrice } : {}),
       })
 
+      console.log('txHash', txHash)
+
       setActionLoading(property.id + '-waiting')
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash, pollingInterval: 3000 })
 
       if (receipt.status !== 'success') {
         throw new Error('Register property transaction reverted on-chain')
@@ -312,7 +314,9 @@ function PropertiesTab({
           gas: approveGasLimit,
           ...(approveGasPrice != null ? { gasPrice: approveGasPrice } : {}),
         })
-        await publicClient.waitForTransactionReceipt({ hash: approveTxHash })
+        await publicClient.waitForTransactionReceipt({ hash: approveTxHash, pollingInterval: 3000 })
+
+        console.log('approveTxHash', approveTxHash)
 
         // 4. Load SLA and Subscription for Minting
         setActionLoading(property.id + '-loading-data')
@@ -382,6 +386,8 @@ function PropertiesTab({
           gas: mintGasLimit,
           ...(mintGasPrice != null ? { gasPrice: mintGasPrice } : {}),
         })
+
+        console.log('mintTxHash', mintTxHash)
 
         await submitMintPrinciple(property.id, chainId.toString(), mintTxHash)
         mintTxHashStr = mintTxHash
@@ -486,7 +492,7 @@ function PropertiesTab({
         gas: approveGasLimit2,
         ...(approveGasPrice2 != null ? { gasPrice: approveGasPrice2 } : {}),
       })
-      await publicClient.waitForTransactionReceipt({ hash: approveHash })
+      await publicClient.waitForTransactionReceipt({ hash: approveHash, pollingInterval: 3000 })
 
       // 3. Mint Principle
       setActionLoading(property.id + '-minting')
