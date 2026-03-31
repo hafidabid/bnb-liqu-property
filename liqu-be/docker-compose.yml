@@ -27,15 +27,15 @@ services:
     container_name: postgres-bnb
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: liquprop
+      POSTGRES_USER: liquprop
+      POSTGRES_PASSWORD: liquprop
     ports:
       - "5121:5432"
     volumes:
       - be_pg_data_bnb:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U liquprop"]
       interval: 5s
       timeout: 5s
       retries: 5
