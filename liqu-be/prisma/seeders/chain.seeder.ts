@@ -33,8 +33,7 @@ export async function seedChains() {
   // Priority 0 = highest priority. PAID tier: for contract calls, event logs,
   // tx simulation, tx status. FREE tier: for block data, gas price, balances.
   const paidRpcUrl = [
-    'https://data-seed-prebsc-1-s1.binance.org:8545',
-    'https://endpoints.omniatech.io/v1/bsc/testnet/public'
+    'https://data-seed-prebsc-1-s1.binance.org:8545'
   ]
   for (const url of paidRpcUrl) {
     const isExist = await prisma.rpc.findFirst({
@@ -67,45 +66,80 @@ export async function seedChains() {
 
   // Public free RPC — used for cheap reads (block number, gas price, balances).
   // Falls back to paid if no free RPC is available, and vice versa.
-  const freeRpcUrl = 'https://data-seed-prebsc-2-s1.binance.org:8545'
-  await prisma.rpc.upsert({
-    where: { id: 2 },
-    update: { url: freeRpcUrl, tier: 'FREE' },
-    create: {
-      url: freeRpcUrl,
-      chainId: '97',
-      isActive: true,
-      priority: 0,
-      tier: 'FREE',
-    },
-  })
+  const freeRpcUrls = [
+    'https://data-seed-prebsc-2-s1.binance.org:8545',
+    'https://rpc.sentio.xyz/bsc-testnet',
+    'https://bnb-testnet.api.onfinality.io/public',
+    'https://api.zan.top/bsc-testnet',
+    'https://bsc-testnet.publicnode.com',
+    'https://bsc-testnet.drpc.org',
+    'https://data-seed-prebsc-2-s1.bnbchain.org:8545',
+    'https://data-seed-prebsc-2-s2.bnbchain.org:8545',
+    'https://data-seed-prebsc-1-s3.bnbchain.org:8545',
+    'https://data-seed-prebsc-1-s2.bnbchain.org:8545',
+    'https://data-seed-prebsc-2-s3.bnbchain.org:8545',
+    'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
+    'https://bsc-testnet.therpc.io',
+    'https://endpoints.omniatech.io/v1/bsc/testnet/public',
+    'https://bsc-testnet.4everland.org/v1/37fa9972c1b1cd5fab542c7bdd4cde2f',
+    'https://public.stackup.sh/api/v1/node/bsc-testnet',
+    'https://bsc-testnet.public.blastapi.io',
+    'https://bsctestapi.terminet.io/rpc'
+  ]
+
+  for (const url of freeRpcUrls) {
+    const isExist = await prisma.rpc.findFirst({
+      where: { url, chainId: '97' },
+    })
+    if (isExist) {
+      await prisma.rpc.update({
+        where: { id: isExist.id },
+        data: {
+          url,
+          chainId: '97',
+          isActive: true,
+          priority: 0,
+          tier: 'FREE',
+        },
+      })
+      continue
+    }
+    await prisma.rpc.create({
+      data: {
+        url,
+        chainId: '97',
+        isActive: true,
+        priority: 0,
+        tier: 'FREE',
+      },
+    })
+  }
   console.log('RPCs upserted for BSC Testnet (PAID: public endpoints, FREE: public)')
 
   // ─── Contracts ───────────────────────────────────────────────────────────
-  // const contracts = [
-  //   { contractName: 'CH_USDC', address: '0x3905E5dd9ee76d863469994DD28Ae619178E2082' },
-  //   { contractName: 'CH_GUARD_FACTORY', address: '0x671b2AF4a57c27c63dD5b68c319e3Af460d8837C' },
-  //   { contractName: 'CH_FACTORY', address: '0x11E3600Ea7621dC7133E131389253fF9a848AAA9' },
-  //   { contractName: 'CH_ASSET', address: '0xa77F3De3Ffa5764Fd4A9f09f854b9410fBaa9872' },
-  //   { contractName: 'CH_PT', address: '0x11c434b5819e5732b456B7A83baddcaC6B568fb9' },
-  //   { contractName: 'PROXY_ADMIN_PT', address: '0x2D6DEed7154D1C6C715bF51E05f501689083B840' },
-  //   { contractName: 'SWAP_ROUTER_PT', address: '0x670543E131253eE598A41CAad956eb280b504338' },
-  //   { contractName: 'YIELD_TOKEN_EXAMPLE', address: '0x75a7D033916cf519fE57528B63687D762dCe0676' },
-  // ]
+  const contracts = [
+    { contractName: 'CH_USDC', address: '0xacF85E325b66f6fb2752C429Deb73b08a48DEe7e' },
+    { contractName: 'CH_GUARD_FACTORY', address: '0xe01f85e256Ae060E0770153f79e848a57921C41E' },
+    { contractName: 'CH_FACTORY', address: '0xD371C8A8400eE31a6b4e9C4a139AF0feed58196E' },
+    { contractName: 'CH_ASSET', address: '0x444597C9Cb824EdD188463950909c4621Eb60Ea8' },
+    { contractName: 'CH_PT', address: '0x345Eb4f31abE294430b7FC792309598D7CB86821' },
+    { contractName: 'SWAP_ROUTER_PT', address: '0x349368BaE07c3bA5d17C4ce94FFA2973CB826D91' },
+    { contractName: 'PLATFORM_TREASURY', address: '0x57a89764C6959Fb665E409eE661290B6B32e6c66' },
+  ]
 
-  // for (const { contractName, address } of contracts) {
-  //   await prisma.contract.upsert({
-  //     where: { chainId_contractName: { chainId: '84532', contractName } },
-  //     update: { address, isActive: true },
-  //     create: {
-  //       chainId: '84532',
-  //       contractName,
-  //       address,
-  //       isActive: true,
-  //     },
-  //   })
-  //   console.log(`Contract upserted: ${contractName} = ${address}`)
-  // }
+  for (const { contractName, address } of contracts) {
+    await prisma.contract.upsert({
+      where: { chainId_contractName: { chainId: '97', contractName } },
+      update: { address, isActive: true },
+      create: {
+        chainId: '97',
+        contractName,
+        address,
+        isActive: true,
+      },
+    })
+    console.log(`Contract upserted: ${contractName} = ${address}`)
+  }
 
   // // ─── System Accounts ──────────────────────────────────────────────────────
   // const systemAccounts = [
