@@ -30,8 +30,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # ports:
-    #   - "5120:5432"
+    ports:
+      - "5121:5432"
     volumes:
       - be_pg_data_bnb:/var/lib/postgresql/data
     healthcheck:
