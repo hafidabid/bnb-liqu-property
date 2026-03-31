@@ -87,7 +87,13 @@ const ChainService = {
           continue
         }
 
-        return await response.json()
+        const json: { error?: { code: number; message: string } } = await response.json()
+        if (json?.error) {
+          errors.push(`rpc#${rpc.id} (${rpc.tier}) JSON-RPC error ${json.error.code}: ${json.error.message}`)
+          continue
+        }
+
+        return json
       } catch (err) {
         errors.push(`rpc#${rpc.id} (${rpc.tier}) ${(err as Error).message}`)
       }

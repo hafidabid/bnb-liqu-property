@@ -30,10 +30,21 @@ export async function seedChains() {
   console.log(`Chain upserted: ${bscTestnet.name} (chainId=${bscTestnet.chainId})`)
 
   // ─── RPCs ────────────────────────────────────────────────────────────────
+  // Deactivate deprecated binance.org endpoints (migrated to bnbchain.org)
+  const deprecatedRpcUrls = [
+    'https://data-seed-prebsc-1-s1.binance.org:8545',
+    'https://data-seed-prebsc-2-s1.binance.org:8545',
+  ]
+  await prisma.rpc.updateMany({
+    where: { url: { in: deprecatedRpcUrls }, chainId: '97' },
+    data: { isActive: false },
+  })
+
   // Priority 0 = highest priority. PAID tier: for contract calls, event logs,
   // tx simulation, tx status. FREE tier: for block data, gas price, balances.
   const paidRpcUrl = [
-    'https://data-seed-prebsc-1-s1.binance.org:8545'
+    'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
+    'https://data-seed-prebsc-1-s2.bnbchain.org:8545',
   ]
   for (const url of paidRpcUrl) {
     const isExist = await prisma.rpc.findFirst({
@@ -67,7 +78,6 @@ export async function seedChains() {
   // Public free RPC — used for cheap reads (block number, gas price, balances).
   // Falls back to paid if no free RPC is available, and vice versa.
   const freeRpcUrls = [
-    'https://data-seed-prebsc-2-s1.binance.org:8545',
     'https://rpc.sentio.xyz/bsc-testnet',
     'https://bnb-testnet.api.onfinality.io/public',
     'https://api.zan.top/bsc-testnet',
