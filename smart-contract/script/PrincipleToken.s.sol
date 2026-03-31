@@ -8,9 +8,15 @@ import {FundraiseFactory} from "../src/modules/FundraiseFactory.sol";
 import {GuardFactory} from "../src/modules/GuardFactory.sol";
 import {PrincipleRouter} from "../src/modules/PrincipleRouter.sol";
 import {MockUSD} from "../src/mocks/MockUSD.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ProxyAdmin
+} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract PrincipleTokenScript is Script {
     PrincipleToken public pt;
@@ -19,17 +25,19 @@ contract PrincipleTokenScript is Script {
     FundraiseFactory public factory;
     MockUSD public usdc;
     TransparentUpgradeableProxy public proxy;
-    ProxyAdmin public proxyAdmin = ProxyAdmin(vm.envAddress("PROXY_ADMIN_PT_BASE_SEPOLIA"));
+    ProxyAdmin public proxyAdmin =
+        ProxyAdmin(vm.envAddress("PROXY_ADMIN_PT_BASE_SEPOLIA"));
     GuardFactory public guardFactory;
 
     uint256 public privateKey = vm.envUint("CHAINLINK_DEPLOYER_PK");
-    address public positionManager = vm.envAddress("BASE_SEPOLIA_POSITION_MANAGER");
+    address public positionManager =
+        vm.envAddress("BASE_SEPOLIA_POSITION_MANAGER");
     address public computePrincipleContract;
     address public computeAssetContract;
     address public swapRouter02 = vm.envAddress("SWAP_ROUTER_02_BASE_SEPOLIA");
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("BASE_SEPOLIA_RPC_URL"));
+        vm.createSelectFork(vm.envString("BSC_TESTNET_RPC_URL"));
     }
 
     function run() public {
@@ -43,13 +51,34 @@ contract PrincipleTokenScript is Script {
 
     function _deployPrincipleToken() internal returns (address) {
         uint64 nonce = vm.getNonce(vm.addr(privateKey));
-        computePrincipleContract = vm.computeCreateAddress(vm.addr(privateKey), nonce + 6);
-        computeAssetContract = vm.computeCreateAddress(vm.addr(privateKey), nonce + 4);
+        computePrincipleContract = vm.computeCreateAddress(
+            vm.addr(privateKey),
+            nonce + 6
+        );
+        computeAssetContract = vm.computeCreateAddress(
+            vm.addr(privateKey),
+            nonce + 4
+        );
+
+        // check in .env MOCK_USDC_ADDRESS exist or not if exist use exist usd mock
+        // if (vm.envAddress("MOCK_USDC_ADDRESS") != address(0)) {
+        //     usdc = MockUSD(vm.envAddress("MOCK_USDC_ADDRESS"));
+        // } else {
+        //     usdc = new MockUSD();
+        // }
 
         usdc = new MockUSD();
-        guardFactory = new GuardFactory(computePrincipleContract, address(usdc), positionManager);
+
+        guardFactory = new GuardFactory(
+            computePrincipleContract,
+            address(usdc),
+            positionManager
+        );
         factory = new FundraiseFactory(
-            computePrincipleContract, address(usdc), computeAssetContract, computePrincipleContract
+            computePrincipleContract,
+            address(usdc),
+            computeAssetContract,
+            computePrincipleContract
         );
 
         asset = new PrincipleAsset();
@@ -61,16 +90,34 @@ contract PrincipleTokenScript is Script {
             "AT"
         );
 
-        proxy = new TransparentUpgradeableProxy(address(asset), vm.addr(privateKey), data);
+        proxy = new TransparentUpgradeableProxy(
+            address(asset),
+            vm.addr(privateKey),
+            data
+        );
         asset = PrincipleAsset(address(proxy));
 
-        pt = new PrincipleToken(address(asset), address(factory), address(usdc), address(guardFactory), positionManager);
+        pt = new PrincipleToken(
+            address(asset),
+            address(factory),
+            address(usdc),
+            address(guardFactory),
+            positionManager
+        );
         data = abi.encodeWithSignature(
-            "initialize(address,address,string)", vm.addr(privateKey), vm.addr(privateKey), "PrincipleToken", "PT"
+            "initialize(address,address,string)",
+            vm.addr(privateKey),
+            vm.addr(privateKey),
+            "PrincipleToken",
+            "PT"
         );
 
         vm.setNonce(vm.addr(privateKey), nonce + 6);
-        proxy = new TransparentUpgradeableProxy(address(pt), vm.addr(privateKey), data);
+        proxy = new TransparentUpgradeableProxy(
+            address(pt),
+            vm.addr(privateKey),
+            data
+        );
         pt = PrincipleToken(address(proxy));
 
         console.log("usdc : ", address(usdc));
@@ -86,7 +133,11 @@ contract PrincipleTokenScript is Script {
         pr = new PrincipleRouter(swapRouter02, address(usdc));
         bytes memory data = abi.encodeWithSignature("initialize()");
 
-        proxy = new TransparentUpgradeableProxy(address(pr), vm.addr(privateKey), data);
+        proxy = new TransparentUpgradeableProxy(
+            address(pr),
+            vm.addr(privateKey),
+            data
+        );
 
         console.log("swap router address is : ", address(proxy));
     }
@@ -99,6 +150,10 @@ contract PrincipleTokenScript is Script {
             vm.envAddress("CH_GUARD_FACTORY"),
             positionManager
         );
-        proxyAdmin.upgradeAndCall(ITransparentUpgradeableProxy(vm.envAddress("CH_PT")), address(pt), "");
+        proxyAdmin.upgradeAndCall(
+            ITransparentUpgradeableProxy(vm.envAddress("CH_PT")),
+            address(pt),
+            ""
+        );
     }
 }

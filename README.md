@@ -142,12 +142,12 @@ npm run start
 ### Binance Smart Chain (BSC) Testnet
 | Contract | Address |
 | :--- | :--- |
-| **USDC (Mock)** | `0xacF85E325b66f6fb2752C429Deb73b08a48DEe7e` |
-| **Guard Factory** | `0x65C86Ab91c48CEe331e493be77389FAdb48776AA` |
-| **Fundraise Factory** | `0x29B5Da1C7D062107faE8F072611bA05104F53ab7` |
-| **Principle Asset (ERC-721)** | `0x2E55502Dc364C31d95CF37024E5034Abc4bE53C5` |
-| **Principle Token Proxy (PT)** | `0xdB8F90219DA5bf39fBe27E0E493f9CcffF40B5d6` |
-| **Principle Router Proxy** | `0xEb1c955f03BeAFC43BA3dF49cfe65E50c10a76F6` |
+| **USDC (Mock)** | `0x9a7CCBA56D47709c1F00292eDA37362925567703` |
+| **Guard Factory** | `0xdD4bB6F360d8720c0DBCdA521DC6Fc50D4DBb2b7` |
+| **Fundraise Factory** | `0xD06c4783d2568FE459240e31da00Aaa0f5DD58D5` |
+| **Principle Asset (ERC-721)** | `0xD45aaD603D096Eea0CFFD5d5329efF5F4cAdf7Ec` |
+| **Principle Token Proxy (PT)** | `0x157ad820FD53b33cD3452C4f0ff64bb63a128636` |
+| **Principle Router Proxy** | `0xfb13a1da18a3D88b7e2a626eb9Eb6E692bDaa7aA` |
 | **Platform Treasury** | `0x57a89764C6959Fb665E409eE661290B6B32e6c66` |
 
 ## 👥 Meet the Team
