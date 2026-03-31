@@ -46,19 +46,18 @@ contract DeployPrincipleToken2 is Script {
     PrincipleRouter public routerProxy;
 
     // ─── Config ────────────────────────────────────────────────────────────────
-    uint256 public deployerPk = vm.envUint("CHAINLINK_DEPLOYER_PK");
+    uint256 public deployerPk = vm.envUint("PRIVATE_KEY");
     address public deployer;
 
-    address public positionManager =
-        vm.envAddress("BASE_SEPOLIA_POSITION_MANAGER");
-    address public swapRouter02 = vm.envAddress("SWAP_ROUTER_02_BASE_SEPOLIA");
+    address public positionManager = vm.envAddress("POSITION_MANAGER_ADDRESS");
+    address public swapRouter02 = vm.envAddress("SWAP_ROUTER_ADDRESS");
 
     /// Treasury address that will receive platform fees (0.5 % of every mint).
     /// Set PLATFORM_TREASURY in your .env or pass --sig 'run(address)' to override.
     address public treasury = vm.envOr("PLATFORM_TREASURY", address(0));
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("BASE_SEPOLIA_RPC_URL"));
+        vm.createSelectFork(vm.envString("BSC_TESTNET_RPC_URL"));
     }
 
     function run() public {
@@ -81,8 +80,8 @@ contract DeployPrincipleToken2 is Script {
     // =========================================================================
 
     function _deployAll() internal {
-        // 1. MockUSD (settlement token — replace with real USDC on production)
-        usdc = new MockUSD();
+        // 1. MockUSD (settlement token — reusing the existing one)
+        usdc = MockUSD(vm.envAddress("MOCK_USDC_ADDRESS"));
         console.log("[1/8] MockUSD             :", address(usdc));
 
         // 2. PrincipleAsset implementation + proxy
@@ -247,7 +246,7 @@ contract DeployPrincipleToken2 is Script {
                 "  cast send ",
                 vm.toString(address(ptProxy)),
                 " 'registerProperty(string)' 'ipfs://your-metadata'",
-                " --rpc-url $BASE_SEPOLIA_RPC_URL --private-key $CHAINLINK_DEPLOYER_PK"
+                " --rpc-url $BSC_TESTNET_RPC_URL --private-key $PRIVATE_KEY"
             )
         );
         console.log(
@@ -265,7 +264,7 @@ contract DeployPrincipleToken2 is Script {
                 " 'approve(address,uint256)' ",
                 vm.toString(address(ptProxy)),
                 " <TOKEN_ID>",
-                " --rpc-url $BASE_SEPOLIA_RPC_URL --private-key $CHAINLINK_DEPLOYER_PK"
+                " --rpc-url $BSC_TESTNET_RPC_URL --private-key $PRIVATE_KEY"
             )
         );
         console.log("");
