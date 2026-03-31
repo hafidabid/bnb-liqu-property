@@ -251,10 +251,14 @@ function PropertiesTab({
         ...(registerGasPrice != null ? { gasPrice: registerGasPrice } : {}),
       })
 
-      await submitRegisterProperty(property.id, txHash, chainId.toString())
-
       setActionLoading(property.id + '-waiting')
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
+
+      if (receipt.status !== 'success') {
+        throw new Error('Register property transaction reverted on-chain')
+      }
+
+      await submitRegisterProperty(property.id, txHash, chainId.toString())
 
       let extractedTokenId: number | null = null
 
@@ -385,7 +389,7 @@ function PropertiesTab({
 
       setRegisterSuccess({
         txHash: mintTxHashStr || txHash,
-        explorerUrl: 'https://base-sepolia.blockscout.com',
+        explorerUrl: publicClient?.chain?.blockExplorers?.default?.url || 'https://testnet.bscscan.com',
       })
       onRefresh()
     } catch (e) {
@@ -549,7 +553,7 @@ function PropertiesTab({
 
       setRegisterSuccess({
         txHash: mintHash,
-        explorerUrl: 'https://base-sepolia.blockscout.com',
+        explorerUrl: publicClient?.chain?.blockExplorers?.default?.url || 'https://testnet.bscscan.com',
       })
       onRefresh()
     } catch (e) {
@@ -643,7 +647,7 @@ function PropertiesTab({
               {/* Latest tx hash */}
               {txsMap[p.id]?.[0] && (() => {
                 const tx = txsMap[p.id][0]
-                const explorerBase = tx.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'
+                const explorerBase = tx.chain?.blockExplorerUrl || publicClient?.chain?.blockExplorers?.default?.url || 'https://testnet.bscscan.com'
                 return (
                   <div className="rounded-lg border border-foreground/10 bg-muted/50 px-2.5 py-1.5 space-y-0.5">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
@@ -1600,7 +1604,7 @@ function TransactionsTab({ properties }: { properties: ApiProperty[] }) {
               </thead>
               <tbody className="divide-y-2 divide-foreground/5 bg-background">
                 {txs.map((tx) => {
-                  const explorerUrl = tx.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'
+                  const explorerUrl = tx.chain?.blockExplorerUrl ?? 'https://testnet.bscscan.com'
                   return (
                     <tr key={tx.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground">

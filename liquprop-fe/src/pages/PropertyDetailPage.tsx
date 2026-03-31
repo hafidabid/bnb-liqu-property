@@ -509,7 +509,7 @@ export default function PropertyDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {reports.map((r) => {
-                    const explorerBase = txHistory[0]?.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'
+                    const explorerBase = txHistory[0]?.chain?.blockExplorerUrl ?? 'https://testnet.bscscan.com'
                     return (
                       <div key={r.id} className="rounded-xl border-2 border-foreground/10 p-3 space-y-2">
                         <div className="flex items-start justify-between gap-2">
@@ -573,7 +573,7 @@ export default function PropertyDetailPage() {
                     </thead>
                     <tbody className="divide-y divide-foreground/10">
                       {txHistory.filter(t => t.type !== 'SWAP_TOKEN').map((tx) => {
-                        const explorerBase = tx.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'
+                        const explorerBase = tx.chain?.blockExplorerUrl ?? 'https://testnet.bscscan.com'
                         const statusStyle =
                           tx.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
                             tx.status === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
@@ -632,7 +632,7 @@ export default function PropertyDetailPage() {
                     </thead>
                     <tbody className="divide-y divide-foreground/10">
                       {txHistory.filter(t => t.type === 'SWAP_TOKEN').map((tx) => {
-                        const explorerBase = tx.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'
+                        const explorerBase = tx.chain?.blockExplorerUrl ?? 'https://testnet.bscscan.com'
                         const statusStyle =
                           tx.status === 'CONFIRMED' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' :
                             tx.status === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :

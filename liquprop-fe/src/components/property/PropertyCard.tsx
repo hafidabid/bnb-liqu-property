@@ -75,7 +75,7 @@ export function PropertyCard({ property, onClick }: PropertyCardProps) {
         </p>
         {latestTxHash && (
           <a
-            href={`${explorerUrl ?? 'https://base-sepolia.blockscout.com'}/tx/${latestTxHash}`}
+            href={`${explorerUrl ?? 'https://testnet.bscscan.com'}/tx/${latestTxHash}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}

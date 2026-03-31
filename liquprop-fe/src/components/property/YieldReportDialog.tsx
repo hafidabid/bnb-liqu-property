@@ -189,7 +189,7 @@ export function YieldReportDialog({ property, onClose, onSuccess }: YieldReportD
               <p className="text-xs font-semibold text-muted-foreground">Yield Tx Hash</p>
               <p className="font-mono text-xs truncate">{successResult.yieldTxHash}</p>
               <a
-                href={`${latestTx?.chain?.blockExplorerUrl ?? 'https://base-sepolia.blockscout.com'}/tx/${successResult.yieldTxHash}`}
+                href={`${latestTx?.chain?.blockExplorerUrl ?? 'https://testnet.bscscan.com'}/tx/${successResult.yieldTxHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"

@@ -129,11 +129,11 @@ export async function seedChains() {
   // ─── Contracts ───────────────────────────────────────────────────────────
   const contracts = [
     { contractName: 'CH_USDC', address: '0xacF85E325b66f6fb2752C429Deb73b08a48DEe7e' },
-    { contractName: 'CH_GUARD_FACTORY', address: '0xe01f85e256Ae060E0770153f79e848a57921C41E' },
-    { contractName: 'CH_FACTORY', address: '0xD371C8A8400eE31a6b4e9C4a139AF0feed58196E' },
-    { contractName: 'CH_ASSET', address: '0x444597C9Cb824EdD188463950909c4621Eb60Ea8' },
-    { contractName: 'CH_PT', address: '0x345Eb4f31abE294430b7FC792309598D7CB86821' },
-    { contractName: 'SWAP_ROUTER_PT', address: '0x349368BaE07c3bA5d17C4ce94FFA2973CB826D91' },
+    { contractName: 'CH_GUARD_FACTORY', address: '0x65C86Ab91c48CEe331e493be77389FAdb48776AA' },
+    { contractName: 'CH_FACTORY', address: '0x29B5Da1C7D062107faE8F072611bA05104F53ab7' },
+    { contractName: 'CH_ASSET', address: '0x2E55502Dc364C31d95CF37024E5034Abc4bE53C5' },
+    { contractName: 'CH_PT', address: '0xdB8F90219DA5bf39fBe27E0E493f9CcffF40B5d6' },
+    { contractName: 'SWAP_ROUTER_PT', address: '0xEb1c955f03BeAFC43BA3dF49cfe65E50c10a76F6' },
     { contractName: 'PLATFORM_TREASURY', address: '0x57a89764C6959Fb665E409eE661290B6B32e6c66' },
   ]
 
