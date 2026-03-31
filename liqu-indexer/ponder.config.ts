@@ -15,20 +15,29 @@ export default createConfig({
     connectionString: process.env.DATABASE_URL,
   },
   chains: {
-    mainnet: {
-      id: 1,
-      rpc: "https://eth.llamarpc.com",
-    },
     bscTestnet: {
       id: 97,
       rpc: fallback([
         http(process.env.PONDER_RPC_URL_97 || "https://data-seed-prebsc-1-s1.binance.org:8545"),
         http("https://data-seed-prebsc-2-s1.binance.org:8545"),
+        http("https://rpc.sentio.xyz/bsc-testnet"),
+        http("https://bnb-testnet.api.onfinality.io/public"),
+        http("https://api.zan.top/bsc-testnet"),
+        http("https://bsc-testnet.publicnode.com"),
+        http("https://bsc-testnet.drpc.org"),
+        http("https://data-seed-prebsc-2-s1.bnbchain.org:8545"),
+        http("https://data-seed-prebsc-2-s2.bnbchain.org:8545"),
+        http("https://data-seed-prebsc-1-s3.bnbchain.org:8545"),
+        http("https://data-seed-prebsc-1-s2.bnbchain.org:8545"),
+        http("https://data-seed-prebsc-2-s3.bnbchain.org:8545"),
+        http("https://data-seed-prebsc-1-s1.bnbchain.org:8545"),
+        http("https://bsc-testnet.therpc.io"),
+        http("https://endpoints.omniatech.io/v1/bsc/testnet/public"),
+        http("https://bsc-testnet.4everland.org/v1/37fa9972c1b1cd5fab542c7bdd4cde2f"),
+        http("https://public.stackup.sh/api/v1/node/bsc-testnet"),
+        http("https://bsc-testnet.public.blastapi.io"),
+        http("https://bsctestapi.terminet.io/rpc")
       ]),
-    },
-    hederaTestnet: {
-      id: 296,
-      rpc: "https://testnet.hashio.io/api",
     },
   },
   contracts: {
@@ -38,11 +47,7 @@ export default createConfig({
         bscTestnet: {
           address: process.env.CH_PT! as `0x${string}`,
           startBlock: 40000000,
-        },
-        hederaTestnet: {
-          address: process.env.HBAR_PT! as `0x${string}`,
-          startBlock: 33055865
-        },
+        }
       },
     },
     PrincipleAsset: {
@@ -51,10 +56,6 @@ export default createConfig({
         bscTestnet: {
           address: process.env.CH_ASSET! as `0x${string}`,
           startBlock: 40000000,
-        },
-        hederaTestnet: {
-          address: process.env.HBAR_ASSET! as `0x${string}`,
-          startBlock: 33055865
         },
       },
     },
@@ -65,11 +66,7 @@ export default createConfig({
         bscTestnet: {
           address: process.env.CH_FACTORY! as `0x${string}`,
           startBlock: 40000000,
-        },
-        hederaTestnet: {
-          address: process.env.HBAR_FACTORY! as `0x${string}`,
-          startBlock: 33055865
-        },
+        }
       },
     },
     PrincipleRouter: {
