@@ -139,14 +139,16 @@ npm run start
 
 ## Smart contract
 
-### Hedera Testnet
+### Binance Smart Chain (BSC) Testnet
 | Contract | Address |
 | :--- | :--- |
-| **USDC (Mock)** | `0x3bA26c3f659ed1AC6E550270D9F75D50A2734d39` |
-| **Guard Factory** | `0x64CcE02142f19Ae4aB7830725Ed06b965C385C30` |
-| **Fundraise Factory** | `0x1f029Df1B9e61053073234c1040c6CB6442A191d` |
-| **Asset (ERC-721)** | `0x1D764E741ceFB8C18044f48F0B7926a5CB43811e` |
-| **Principle Token (PT)** | `0xcFd139735Fb48eB62826f122a2A295C22C9D6670` |
+| **USDC (Mock)** | `0xacF85E325b66f6fb2752C429Deb73b08a48DEe7e` |
+| **Guard Factory** | `0xe01f85e256Ae060E0770153f79e848a57921C41E` |
+| **Fundraise Factory** | `0xD371C8A8400eE31a6b4e9C4a139AF0feed58196E` |
+| **Principle Asset (ERC-721)** | `0x444597C9Cb824EdD188463950909c4621Eb60Ea8` |
+| **Principle Token Proxy (PT)** | `0x345Eb4f31abE294430b7FC792309598D7CB86821` |
+| **Principle Router Proxy** | `0x349368BaE07c3bA5d17C4ce94FFA2973CB826D91` |
+| **Platform Treasury** | `0x57a89764C6959Fb665E409eE661290B6B32e6c66` |
 
 ## 👥 Meet the Team
 

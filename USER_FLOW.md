@@ -32,7 +32,7 @@ Property Owner
      │                                                              │
      │                                                   Investors buy presale
      │                                                              │
-     └─ deploys guard ───────► PrincipleGuard (Uniswap V3 vault) ◄─┘
+     └─ deploys guard ───────► PrincipleGuard (PancakeSwap/Uniswap V3 vault) ◄─┘
                                      │
                                      ├─ Floor position  (USDC liquidity – price floor)
                                      ├─ Base position   (YieldToken + USDC – market range)
@@ -52,8 +52,8 @@ Property Owner
 | `PrincipleAsset` | ERC-721; one NFT per property |
 | `Fundraise Pool` | Escrow; holds NFT + fraction tokens during fundraise |
 | `GuardFactory` | Deploys `YieldToken` and `PrincipleGuard` |
-| `PrincipleGuard` | Uniswap V3 vault; price floor + yield amplification |
-| `YieldToken` | ERC-20 counterpart token in the Uniswap pool |
+| `PrincipleGuard` | PancakeSwap/Uniswap V3 vault; price floor + yield amplification |
+| `YieldToken` | ERC-20 counterpart token in the PancakeSwap/Uniswap pool |
 | `Settlement (USDC)` | Payment & yield currency throughout |
 
 ---
@@ -203,7 +203,7 @@ Investor ──► buyPresale(tokenId, amount) ──► PrincipleToken
 **Who:** Anyone (permissionless once deadline has passed)  
 **Contract call:** `PrincipleToken.deployGuard(name_, symbol_, tokenId_, sqrtPriceX96, floorTick)`
 
-This is the pivotal step — raised USDC is converted into a self-managing Uniswap V3 liquidity vault.
+This is the pivotal step — raised USDC is converted into a self-managing PancakeSwap/Uniswap V3 liquidity vault.
 
 ### Pre-conditions
 
@@ -212,7 +212,7 @@ This is the pivotal step — raised USDC is converted into a self-managing Unisw
 | Position must exist | `TokenIdIsNotExist` |
 | Current time ≥ `position.expiry` | `NotYetMatured` |
 | Guard not already deployed | `AlreadyDeployed` |
-| `settlement` address < `yieldToken` address (token ordering for Uniswap V3) | enforced by loop |
+| `settlement` address < `yieldToken` address (token ordering for PancakeSwap/Uniswap V3) | enforced by loop |
 
 ### Capital Split
 
@@ -233,7 +233,7 @@ Total USDC in Fundraise Pool
 Caller ──► deployGuard(name, symbol, tokenId, sqrtPriceX96, floorTick) ──► PrincipleToken
                                                                                   │
                      1. guardFactory.deployYieldToken(name, symbol)
-                        (loop ensures settlement < yieldToken for Uniswap ordering)
+                        (loop ensures settlement < yieldToken for PancakeSwap/Uniswap ordering)
                                                                                   │
                      2. guardFactory.deployGuard(yieldToken)
                         ── deploys PrincipleGuard contract
@@ -257,17 +257,17 @@ Caller ──► deployGuard(name, symbol, tokenId, sqrtPriceX96, floorTick) ─
                         ├── createAndInitializePoolIfNecessary(YieldToken, USDC, 0.3 %)
                         │
                         ├── _mintFloor(anchor, floorTick)
-                        │     └── Uniswap V3 position: pure USDC
+                        │     └── PancakeSwap/Uniswap V3 position: pure USDC
                         │         [floorTick, floorTick + tickSpacing]
                         │         ── this is the price floor — buying pressure below market
                         │
                         ├── _mintBase(base)
-                        │     └── Uniswap V3 position: YieldToken + USDC
+                        │     └── PancakeSwap/Uniswap V3 position: YieldToken + USDC
                         │         [currentTick ± 20 ticks]
                         │         ── tight range around market price
                         │
                         └── _mintAscent()
-                              └── Uniswap V3 position: pure YieldToken
+                              └── PancakeSwap/Uniswap V3 position: pure YieldToken
                                   [baseTickUpper, baseTickUpper + 20 ticks]
                                   ── captures upside price appreciation
                                                                                   │
@@ -279,7 +279,7 @@ Caller ──► deployGuard(name, symbol, tokenId, sqrtPriceX96, floorTick) ─
                     10. emit PrincipleGuardDeployed(guard, yieldToken, floorTick, bal)
 ```
 
-### Uniswap V3 Positions Inside the Guard
+### PancakeSwap/Uniswap V3 Positions Inside the Guard
 
 ```
 Price (USDC per YieldToken)
@@ -453,7 +453,7 @@ Property Owner                PrincipleToken         Fundraise Pool       Princi
       │◄──25% USDC──────────────────│                       │                    │                   │
       │                             │──transferSettlement(75% to guard)──────────►│                  │
       │                             │──initPoolAndPosition()────────────────────►│                   │
-      │                             │                       │            [create Uniswap pool]        │
+      │                             │                       │            [create PancakeSwap/Uniswap pool]        │
       │                             │                       │            [mint Floor LP]              │
       │                             │                       │            [mint Base LP]               │
       │                             │                       │            [mint Ascent LP]             │
@@ -474,5 +474,5 @@ Property Owner                PrincipleToken         Fundraise Pool       Princi
 ---
 
 > **Contract:** `PrincipleToken.sol` — the single entry point for all phases above.  
-> **Guard logic:** `PrincipleGuard.sol` — autonomous Uniswap V3 vault post-deployment.  
+> **Guard logic:** `PrincipleGuard.sol` — autonomous PancakeSwap/Uniswap V3 vault post-deployment.  
 > **Yield amplifier:** `YieldToken.sol` — virtual ERC-20 used only within the guard pool.
