@@ -178,7 +178,7 @@ export const createPropertyFull = async (
         thumbnailDocument: { select: { id: true, url: true } },
       },
     })
-  })
+  }, { timeout: 50000 })
 }
 
 
