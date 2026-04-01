@@ -2,6 +2,7 @@ import db from '#prisma/prisma'
 import AppException from '#app/exceptions/app_exception'
 import ErrorCodes from '#app/exceptions/error_codes'
 import { RpcTier } from '@prisma/client'
+import axios from 'axios'
 
 /**
  * JSON-RPC methods that require a paid/premium RPC node.
@@ -76,19 +77,12 @@ const ChainService = {
 
     for (const rpc of ordered) {
       try {
-        const response = await fetch(rpc.url, {
-          method: 'POST',
+        const response = await axios.post(rpc.url, body, {
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(5000),
+          timeout: 5000,
         })
 
-        if (!response.ok) {
-          errors.push(`rpc#${rpc.id} (${rpc.tier}) HTTP ${response.status}`)
-          continue
-        }
-
-        const json: { error?: { code: number; message: string } } = await response.json()
+        const json: { error?: { code: number; message: string } } = response.data
         if (json?.error) {
           errors.push(`rpc#${rpc.id} (${rpc.tier}) JSON-RPC error ${json.error.code}: ${json.error.message}`)
           continue
@@ -101,7 +95,7 @@ const ChainService = {
     }
 
     console.error(`[RPC] All RPCs failed for chainId=${chainId} method=${method}:`, errors)
-    throw new AppException(502, ErrorCodes.SYSTEM_ERROR, `All RPC upstreams failed for chainId ${chainId}`)
+    throw new AppException(502, ErrorCodes.SYSTEM_ERROR, `All RPC upstreams failed for chainId ${chainId} with details ${errors.join(', ')}`)
   },
 
   listContracts: async (chainId: string) => {
