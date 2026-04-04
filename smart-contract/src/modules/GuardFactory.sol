@@ -9,6 +9,7 @@ contract GuardFactory {
     address public operator;
     address public settlement;
     address public positionManager;
+    address public owner;
 
     modifier onlyOperator() {
         if (msg.sender != operator) revert Errors.NotAnOperator();
@@ -23,6 +24,13 @@ contract GuardFactory {
         operator = operator_;
         settlement = settlement_;
         positionManager = positionManager_;
+        owner = msg.sender;
+    }
+
+    /// @notice Wire the operator (PrincipleToken) after deployment
+    function setOperator(address operator_) external {
+        if (msg.sender != owner) revert Errors.NotAnOperator();
+        operator = operator_;
     }
 
     function deployGuard(

@@ -12,9 +12,6 @@ import {GuardFactory} from "../src/modules/GuardFactory.sol";
 import {PriceMath} from "../src/libraries/PriceMath.sol";
 import {TickMath} from "../src/libraries/TickMath.sol";
 import {
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {
     PositionInput,
     Position,
     PrincipleSupply,
@@ -39,7 +36,6 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
     PrincipleAsset public asset;
     FundraiseFactory public factory;
     MockUSD public usdc;
-    TransparentUpgradeableProxy public proxy;
     GuardFactory public guardFactory;
     PrincipleRouter public router;
     IPrincipleAsset public principleAsset;
@@ -54,56 +50,39 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
     address james = makeAddr("james");
     address alice = makeAddr("alice");
 
-    address computePrincipleContract;
-    address computeAssetContract;
-
     function setUp() public {
-        //create select fork
+        // Fork at known block
         vm.createSelectFork(vm.envString("BASE_SEPOLIA_RPC_URL"), 34964820);
 
-        uint64 nonce = vm.getNonce(address(this));
-        computePrincipleContract = vm.computeCreateAddress(
-            address(this),
-            nonce + 6
-        );
-        computeAssetContract = vm.computeCreateAddress(
-            address(this),
-            nonce + 4
-        );
-
         usdc = new MockUSD();
+
+        // Deploy asset with placeholder principleToken (wired below)
+        asset = new PrincipleAsset(
+            address(this),
+            address(0),
+            "Asset Token",
+            "AT"
+        );
+        principleAsset = IPrincipleAsset(address(asset));
+
+        // Deploy factories with placeholder operator (wired below)
         guardFactory = new GuardFactory(
-            computePrincipleContract,
+            address(0),
             address(usdc),
             address(positionManager)
         );
         factory = new FundraiseFactory(
-            computePrincipleContract,
+            address(0),
             address(usdc),
-            computeAssetContract,
-            computePrincipleContract
-        );
-        //assetNFT deployment
-        asset = new PrincipleAsset();
-
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,string,string)",
-            address(this),
-            computePrincipleContract,
-            "Asset Token",
-            "AT"
-        );
-
-        proxy = new TransparentUpgradeableProxy(
             address(asset),
-            address(this),
-            data
+            address(0)
         );
-        asset = PrincipleAsset(address(proxy));
-        principleAsset = IPrincipleAsset(address(asset));
 
-        //principle token deployment
+        // Deploy PrincipleToken — all addresses known at this point
         pt = new PrincipleToken(
+            address(this), // adminOwner
+            admin, // admin
+            "ipfs://", // base URI
             address(asset),
             address(factory),
             address(usdc),
@@ -111,28 +90,15 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
             address(positionManager)
         );
 
-        data = abi.encodeWithSignature(
-            "initialize(address,address,string)",
-            address(this),
-            admin,
-            "PrincipleToken",
-            "PT"
-        );
+        // Wire everything
+        asset.setPrincipleToken(address(pt));
+        guardFactory.setOperator(address(pt));
+        factory.setOperator(address(pt));
 
-        vm.setNonce(address(this), nonce + 6);
-        proxy = new TransparentUpgradeableProxy(
-            address(pt),
-            address(this),
-            data
-        );
-        pt = PrincipleToken(address(proxy));
-
+        // Router is standalone
         router = new PrincipleRouter(swapRouter02, address(usdc));
-        deal(address(usdc), alice, 100_000_000e6);
-    }
 
-    function test_deployment() public view {
-        assertEq(address(pt), computePrincipleContract, "should be equal");
+        deal(address(usdc), alice, 100_000_000e6);
     }
 
     function test_MintAsset_happy() public {
@@ -250,9 +216,9 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
         test_DeployGuard_happy();
 
         uint256 bal = IERC20(usdc).balanceOf(alice);
-        uint256 ptBal = IERC1155(computePrincipleContract).balanceOf(alice, 1);
+        uint256 ptBal = IERC1155(address(pt)).balanceOf(alice, 1);
         vm.startPrank(alice);
-        IERC1155(computePrincipleContract).setApprovalForAll(address(pt), true);
+        IERC1155(address(pt)).setApprovalForAll(address(pt), true);
         pt.sellPrinciple(1, 1);
 
         vm.stopPrank();
@@ -263,7 +229,7 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
             "balance should be greater"
         );
         assertLt(
-            IERC1155(computePrincipleContract).balanceOf(alice, 1),
+            IERC1155(address(pt)).balanceOf(alice, 1),
             ptBal,
             "Principle Amount Should be Greater"
         );
@@ -271,7 +237,7 @@ contract PrincipleTokenTest is Test, ERC1155Holder {
         console.log("principle token balance before : ", ptBal);
         console.log(
             "principle token balance after : ",
-            IERC1155(computePrincipleContract).balanceOf(alice, 1)
+            IERC1155(address(pt)).balanceOf(alice, 1)
         );
         console.log("========= LOGS ===========");
         console.log("usdc balance before : ", bal);
@@ -303,9 +269,6 @@ contract ForkTest is Test {
         int24 floorTick = (unnormalizedFloorTick / 60) * 60;
 
         console.log("sqrt price : ", sqrtPrice);
-        //79228162514264337593543950336
-        //79228162514264337593543
-        //79228162514264337593543n
         console.log("floorTick", floorTick);
 
         pt.deployGuard(name_, symbol, tokenId, sqrtPrice, floorTick);

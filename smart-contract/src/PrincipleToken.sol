@@ -1,20 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-/// @title SimpleContract
-/// @author Your Name
-/// @notice An upgradeable contract demonstrating the Diamond Storage Pattern
-/// @dev This contract uses library-based storage for upgradeable-safe state management
-/// @dev Inherits from Initializable, OwnableUpgradeable, and SimpleContractView
-import {
-    Initializable
-} from "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
-import {
-    OwnableUpgradeable
-} from "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
-import {
-    ERC1155Upgradeable
-} from "@openzeppelin-upgradeable/contracts/token/ERC1155/ERC1155Upgradeable.sol";
+/// @title PrincipleToken
+/// @notice Non-upgradeable ERC1155 contract for tokenizing real-world property assets
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {PrincipleFacet} from "./libraries/PrincipleFacet.sol";
 import {IPrincipleAsset} from "./interfaces/IPrincipleAsset.sol";
 import {IFundraise} from "./interfaces/IFundraise.sol";
@@ -47,13 +37,7 @@ import {TickMath} from "./libraries/TickMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {console, Test} from "forge-std/Test.sol";
 
-contract PrincipleToken is
-    Initializable,
-    OwnableUpgradeable,
-    ERC1155Upgradeable,
-    PrincipleFacet,
-    IERC1155Receiver
-{
+contract PrincipleToken is Ownable, ERC1155, PrincipleFacet, IERC1155Receiver {
     using LibPrincipleFacet for *;
 
     //immutable
@@ -77,37 +61,24 @@ contract PrincipleToken is
         if (msg.sender != admin) revert Errors.NotAnAdmin();
         _;
     }
-    /// @notice Initializes the contract with an admin owner
-    /// @dev This function replaces the constructor for upgradeable contracts
-    /// @dev Can only be called once due to the initializer modifier
-    /// @param adminOwner The address that will be set as the owner of the contract
 
-    function initialize(
+    /// @notice Constructor — sets all state including immutables and roles
+    constructor(
         address adminOwner,
         address admin_,
-        string memory uri
-    ) public initializer {
-        __Ownable_init(adminOwner);
-        __ERC1155_init(uri);
-        admin = admin_;
-    }
-
-    /// @notice Constructor that disables initializers
-    /// @dev This prevents the implementation contract from being initialized
-    /// @dev Required for upgradeable contracts to prevent initialization attacks
-    constructor(
+        string memory uri,
         address principleAsset_,
         address fundraiseFactory_,
         address settlement_,
         address guardFactory_,
         address _positionManager
-    ) {
+    ) Ownable(adminOwner) ERC1155(uri) {
         principleAsset = IPrincipleAsset(principleAsset_);
         fundraiseFactory = IFundraiseFactory(fundraiseFactory_);
         settlement = IERC20(settlement_);
         guardFactory = IGuardFactory(guardFactory_);
         positionManager = INonfungiblePositionManager(_positionManager);
-        _disableInitializers();
+        admin = admin_;
     }
 
     //erc721 mint
@@ -200,7 +171,6 @@ contract PrincipleToken is
         ];
         if (position.pool == address(0)) revert Errors.PoolAddressIsZero();
         if (amount > position.presaleAmount) revert Errors.NotEnoughSupply();
-        //if (position.expiry < block.timestamp) revert Errors.FinishedFundraise();
         if (amount == 0) revert Errors.AmountShouldNotBZero();
         settlement.transferFrom(
             msg.sender,
@@ -256,11 +226,6 @@ contract PrincipleToken is
             : 0;
         uint256 fulfillment = (sold * 100) / position.totalSupply;
 
-        // Allow deployment if:
-        // 1. Matured (timestamp >= expiry)
-        // 2. OR Presale is fully sold out
-        // 3. OR Caller is owner (emergency/forced deployment)
-        // 4. OR Caller is admin AND at least 50% of supply is sold
         bool isMatured = block.timestamp >= position.expiry;
         bool isFullySold = position.presaleAmount == 0;
         bool isOwner = msg.sender == owner();
@@ -432,7 +397,6 @@ contract PrincipleToken is
         this.safeTransferFrom(msg.sender, address(this), tokenId_, amount, "");
 
         // 2. Calculate YieldToken equivalent (1 fraction = presalePrice * 1e12 YieldTokens)
-        // presalePrice is 6 decimals, times 1e12 gives 18 decimals per USDC value.
         uint256 yieldAmount = amount * position.presalePrice * 1e12;
 
         // 3. Mint YieldToken to sender
@@ -452,7 +416,7 @@ contract PrincipleToken is
         // 1. Calculate YieldToken equivalent
         uint256 yieldAmount = amount * position.presalePrice * 1e12;
 
-        // 2. Take YieldToken from sender to this contract and burn it
+        // 2. Take YieldToken from sender and burn it
         IYieldToken(position.yieldToken).transferFrom(
             msg.sender,
             address(this),
@@ -467,7 +431,6 @@ contract PrincipleToken is
     }
 
     /// @notice Handles the receipt of a single ERC1155 token type
-    /// @return bytes4 The function selector to confirm the token transfer
     function onERC1155Received(
         address,
         address,
@@ -479,7 +442,6 @@ contract PrincipleToken is
     }
 
     /// @notice Handles the receipt of multiple ERC1155 token types
-    /// @return bytes4 The function selector to confirm the token transfer
     function onERC1155BatchReceived(
         address,
         address,
@@ -491,11 +453,9 @@ contract PrincipleToken is
     }
 
     /// @notice Query if a contract implements an interface
-    /// @param interfaceId The interface identifier, as specified in ERC-165
-    /// @return bool True if the contract implements interfaceId, false otherwise
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC1155Upgradeable, IERC165) returns (bool) {
+    ) public view virtual override(ERC1155, IERC165) returns (bool) {
         return
             interfaceId == type(IERC1155Receiver).interfaceId ||
             super.supportsInterface(interfaceId);

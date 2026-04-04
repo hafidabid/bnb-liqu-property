@@ -8,32 +8,20 @@ import {FundraiseFactory} from "../src/modules/FundraiseFactory.sol";
 import {GuardFactory} from "../src/modules/GuardFactory.sol";
 import {PrincipleRouter} from "../src/modules/PrincipleRouter.sol";
 import {MockUSD} from "../src/mocks/MockUSD.sol";
-import {
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {
-    ITransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {
-    ProxyAdmin
-} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
+/// @notice Legacy deploy script — updated for non-upgradeable contracts.
+/// Use DeployPrincipleToken2.s.sol for the canonical deploy.
 contract PrincipleTokenScript is Script {
     PrincipleToken public pt;
     PrincipleAsset public asset;
     PrincipleRouter public pr;
     FundraiseFactory public factory;
     MockUSD public usdc;
-    TransparentUpgradeableProxy public proxy;
-    ProxyAdmin public proxyAdmin =
-        ProxyAdmin(vm.envAddress("PROXY_ADMIN_PT_BASE_SEPOLIA"));
     GuardFactory public guardFactory;
 
     uint256 public privateKey = vm.envUint("CHAINLINK_DEPLOYER_PK");
     address public positionManager =
         vm.envAddress("BASE_SEPOLIA_POSITION_MANAGER");
-    address public computePrincipleContract;
-    address public computeAssetContract;
     address public swapRouter02 = vm.envAddress("SWAP_ROUTER_02_BASE_SEPOLIA");
 
     function setUp() public {
@@ -41,119 +29,54 @@ contract PrincipleTokenScript is Script {
     }
 
     function run() public {
+        address deployer = vm.addr(privateKey);
         vm.startBroadcast(privateKey);
-
-        _deployPrincipleToken();
-        _deploySwap();
-
-        vm.stopBroadcast();
-    }
-
-    function _deployPrincipleToken() internal returns (address) {
-        uint64 nonce = vm.getNonce(vm.addr(privateKey));
-        computePrincipleContract = vm.computeCreateAddress(
-            vm.addr(privateKey),
-            nonce + 6
-        );
-        computeAssetContract = vm.computeCreateAddress(
-            vm.addr(privateKey),
-            nonce + 4
-        );
-
-        // check in .env MOCK_USDC_ADDRESS exist or not if exist use exist usd mock
-        // if (vm.envAddress("MOCK_USDC_ADDRESS") != address(0)) {
-        //     usdc = MockUSD(vm.envAddress("MOCK_USDC_ADDRESS"));
-        // } else {
-        //     usdc = new MockUSD();
-        // }
 
         usdc = new MockUSD();
 
+        // Deploy asset with placeholder principleToken (wired after pt deployed)
+        asset = new PrincipleAsset(deployer, address(0), "AssetToken", "AT");
+
+        // Deploy factories with placeholder operator (wired after pt deployed)
         guardFactory = new GuardFactory(
-            computePrincipleContract,
+            address(0),
             address(usdc),
             positionManager
         );
         factory = new FundraiseFactory(
-            computePrincipleContract,
+            address(0),
             address(usdc),
-            computeAssetContract,
-            computePrincipleContract
-        );
-
-        asset = new PrincipleAsset();
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,string,string)",
-            vm.addr(privateKey),
-            computePrincipleContract,
-            "AssetToken",
-            "AT"
-        );
-
-        proxy = new TransparentUpgradeableProxy(
             address(asset),
-            vm.addr(privateKey),
-            data
+            address(0)
         );
-        asset = PrincipleAsset(address(proxy));
 
+        // Deploy PrincipleToken — all addresses now known
         pt = new PrincipleToken(
+            deployer,
+            deployer,
+            "ipfs://",
             address(asset),
             address(factory),
             address(usdc),
             address(guardFactory),
             positionManager
         );
-        data = abi.encodeWithSignature(
-            "initialize(address,address,string)",
-            vm.addr(privateKey),
-            vm.addr(privateKey),
-            "PrincipleToken",
-            "PT"
-        );
 
-        vm.setNonce(vm.addr(privateKey), nonce + 6);
-        proxy = new TransparentUpgradeableProxy(
-            address(pt),
-            vm.addr(privateKey),
-            data
-        );
-        pt = PrincipleToken(address(proxy));
+        // Wire everything
+        asset.setPrincipleToken(address(pt));
+        guardFactory.setOperator(address(pt));
+        factory.setOperator(address(pt));
 
-        console.log("usdc : ", address(usdc));
-        console.log("guardFactory : ", address(guardFactory));
-        console.log("factory : ", address(factory));
-        console.log("asset : ", address(asset));
-        console.log("pt : ", address(pt));
-
-        return address(usdc);
-    }
-
-    function _deploySwap() internal {
+        // Router
         pr = new PrincipleRouter(swapRouter02, address(usdc));
-        bytes memory data = abi.encodeWithSignature("initialize()");
 
-        proxy = new TransparentUpgradeableProxy(
-            address(pr),
-            vm.addr(privateKey),
-            data
-        );
+        console.log("usdc         :", address(usdc));
+        console.log("guardFactory :", address(guardFactory));
+        console.log("factory      :", address(factory));
+        console.log("asset        :", address(asset));
+        console.log("pt           :", address(pt));
+        console.log("router       :", address(pr));
 
-        console.log("swap router address is : ", address(proxy));
-    }
-
-    function _upgradePt() internal {
-        pt = new PrincipleToken(
-            vm.envAddress("CH_ASSET"),
-            vm.envAddress("CH_FACTORY"),
-            vm.envAddress("CH_USDC"),
-            vm.envAddress("CH_GUARD_FACTORY"),
-            positionManager
-        );
-        proxyAdmin.upgradeAndCall(
-            ITransparentUpgradeableProxy(vm.envAddress("CH_PT")),
-            address(pt),
-            ""
-        );
+        vm.stopBroadcast();
     }
 }

@@ -8,42 +8,41 @@ import {FundraiseFactory} from "../src/modules/FundraiseFactory.sol";
 import {GuardFactory} from "../src/modules/GuardFactory.sol";
 import {PrincipleRouter} from "../src/modules/PrincipleRouter.sol";
 import {MockUSD} from "../src/mocks/MockUSD.sol";
-import {
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /// @title DeployPrincipleToken2
-/// @notice Experiment / isolated deployment of the full PrincipleToken stack.
-///         Differences from PrincipleToken.s.sol:
-///           1. No fragile nonce pre-computation.  Addresses are wired AFTER
-///              both proxies are deployed, using `PrincipleAsset.setPrincipleToken`.
-///           2. `setPlatformTreasury` is called automatically during deployment.
-///           3. Console output includes the exact `cast send` commands for the
-///              manual steps that follow (approve + mintPrinciple).
+/// @notice Non-upgradeable deployment of the full PrincipleToken stack.
+///
+/// Deploy order (no nonce pre-computation needed):
+///   1. MockUSD (reused from env)
+///   2. PrincipleAsset  — principleToken wired to address(0) initially
+///   3. GuardFactory    — operator wired to address(0) initially
+///   4. FundraiseFactory — operator wired to address(0) initially
+///   5. PrincipleToken  — all addresses now known, single-step deploy
+///   6. Wire: asset.setPrincipleToken, guardFactory.setOperator, factory.setOperator
+///   7. pt.setPlatformTreasury
+///   8. PrincipleRouter  — standalone, no wiring needed
 ///
 /// Usage:
 ///   forge script script/DeployPrincipleToken2.s.sol \
-///     --rpc-url $BASE_SEPOLIA_RPC_URL \
+///     --rpc-url $BSC_TESTNET_RPC_URL \
 ///     --broadcast \
-///     --verify \
 ///     -vvvv
 ///
-/// Required env vars (same as the original script):
-///   CHAINLINK_DEPLOYER_PK
-///   BASE_SEPOLIA_POSITION_MANAGER
-///   SWAP_ROUTER_02_BASE_SEPOLIA
-///   PLATFORM_TREASURY          ← address that receives platform fees (NEW)
-///
-/// Optional env var:
-///   BASE_SEPOLIA_RPC_URL       (only needed for --fork-url / setUp)
+/// Required env vars:
+///   PRIVATE_KEY
+///   POSITION_MANAGER_ADDRESS
+///   SWAP_ROUTER_ADDRESS
+///   MOCK_USDC_ADDRESS
+///   PLATFORM_TREASURY
+///   BSC_TESTNET_RPC_URL
 contract DeployPrincipleToken2 is Script {
     // ─── Deployed contracts ────────────────────────────────────────────────────
     MockUSD public usdc;
     GuardFactory public guardFactory;
     FundraiseFactory public factory;
-    PrincipleAsset public assetProxy;
-    PrincipleToken public ptProxy;
-    PrincipleRouter public routerProxy;
+    PrincipleAsset public asset;
+    PrincipleToken public pt;
+    PrincipleRouter public router;
 
     // ─── Config ────────────────────────────────────────────────────────────────
     uint256 public deployerPk = vm.envUint("PRIVATE_KEY");
@@ -51,25 +50,14 @@ contract DeployPrincipleToken2 is Script {
 
     address public positionManager = vm.envAddress("POSITION_MANAGER_ADDRESS");
     address public swapRouter02 = vm.envAddress("SWAP_ROUTER_ADDRESS");
-
-    /// Treasury address that will receive platform fees (0.5 % of every mint).
-    /// Set PLATFORM_TREASURY in your .env or pass --sig 'run(address)' to override.
     address public treasury = vm.envOr("PLATFORM_TREASURY", address(0));
-
-    function setUp() public {
-        vm.createSelectFork(vm.envString("BSC_TESTNET_RPC_URL"));
-    }
 
     function run() public {
         deployer = vm.addr(deployerPk);
-
-        // ── Safety check ──────────────────────────────────────────────────────
         require(treasury != address(0), "Set PLATFORM_TREASURY in your .env");
 
         vm.startBroadcast(deployerPk);
-
         _deployAll();
-
         vm.stopBroadcast();
 
         _printSummary();
@@ -80,139 +68,61 @@ contract DeployPrincipleToken2 is Script {
     // =========================================================================
 
     function _deployAll() internal {
-        // 1. MockUSD (settlement token — reusing the existing one)
+        // [1] Reuse existing MockUSD
         usdc = MockUSD(vm.envAddress("MOCK_USDC_ADDRESS"));
         console.log("[1/8] MockUSD             :", address(usdc));
 
-        // 2. PrincipleAsset implementation + proxy
-        //    Note: principleToken is set to address(0) initially — wired in step 6.
-        PrincipleAsset assetImpl = new PrincipleAsset();
-        console.log("[2/8] PrincipleAsset impl :", address(assetImpl));
+        // [2] PrincipleAsset — principleToken = address(0), wired in step 6
+        asset = new PrincipleAsset(deployer, address(0), "AssetToken", "ATOK");
+        console.log("[2/8] PrincipleAsset      :", address(asset));
 
-        bytes memory assetInitData = abi.encodeWithSignature(
-            "initialize(address,address,string,string)",
-            deployer,
-            address(0), // principleToken wired AFTER PT proxy is known
-            "AssetToken",
-            "ATOK"
-        );
-        assetProxy = PrincipleAsset(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(assetImpl),
-                    deployer,
-                    assetInitData
-                )
-            )
-        );
-        console.log("[3/8] PrincipleAsset proxy:", address(assetProxy));
-
-        // 3. PrincipleToken implementation (needs asset + factory + usdc + guard + posManager)
-        //    Factory and guard are deployed first because PT impl constructor is immutable.
-        //    We pass a placeholder (assetProxy) for factory/guard addresses that need PT —
-        //    see step 5 & 6 for the actual wiring.
-        //
-        //    Deployment order:
-        //      guardFactory ← needs PT address → placeholder = address(0), wired after
-        //      factory      ← needs PT address → placeholder = address(0), wired after
-        //
-        //    Since GuardFactory and FundraiseFactory store the operator/principleToken as
-        //    immutables we cannot change them post-deploy.  Instead we deploy them
-        //    AFTER we know the PT proxy address (two-proxy trick using CREATE2 or
-        //    simply deploying assetProxy first then computing PT's proxy address via
-        //    a lightweight pre-compute of the NEXT two nonces).
-        //
-        //    Concretely the order is:
-        //      assetImpl(A)  → assetProxy(B) → ptImpl(C) → ptProxy(D=nonce+3 from A)
-        //      guardFactory must know D, factory must know D.
-        //      We get D by computing nonce+3 from the deployer's current nonce (after B).
-        //
-        //    This is a ONE-step pre-compute over only 2 hops (ptImpl + ptProxy),
-        //    which is far more reliable than the original 6-hop offset.
-
-        uint64 nonceAfterAssetProxy = vm.getNonce(deployer);
-        // Next: guardFactory (+0), factory (+1), ptImpl (+2), ptProxy (+3)  →  ptProxy = nonce + 3
-        address predictedPtProxy = vm.computeCreateAddress(
-            deployer,
-            nonceAfterAssetProxy + 3
-        );
-        console.log("[4/8] Predicted PT proxy  :", predictedPtProxy);
-
-        // Now we can deploy guardFactory and factory with the correct operator address.
+        // [3] GuardFactory — operator = address(0), wired in step 6
         guardFactory = new GuardFactory(
-            predictedPtProxy,
+            address(0),
             address(usdc),
             positionManager
         );
-        console.log("[5/8] GuardFactory        :", address(guardFactory));
+        console.log("[3/8] GuardFactory        :", address(guardFactory));
 
+        // [4] FundraiseFactory — operator = address(0), wired in step 6
         factory = new FundraiseFactory(
-            predictedPtProxy,
+            address(0),
             address(usdc),
-            address(assetProxy),
-            predictedPtProxy
+            address(asset),
+            address(0)
         );
-        console.log("[6/8] FundraiseFactory    :", address(factory));
+        console.log("[4/8] FundraiseFactory    :", address(factory));
 
-        // 4. PrincipleToken implementation
-        PrincipleToken ptImpl = new PrincipleToken(
-            address(assetProxy),
+        // [5] PrincipleToken — all addresses now known
+        pt = new PrincipleToken(
+            deployer, // adminOwner
+            deployer, // admin
+            "ipfs://", // base URI
+            address(asset),
             address(factory),
             address(usdc),
             address(guardFactory),
             positionManager
         );
-        console.log("[7/8] PrincipleToken impl :", address(ptImpl));
+        console.log("[5/8] PrincipleToken      :", address(pt));
 
-        // 5. PrincipleToken proxy  ← must land at predictedPtProxy
-        bytes memory ptInitData = abi.encodeWithSignature(
-            "initialize(address,address,string)",
-            deployer, // owner
-            deployer, // admin
-            "ipfs://" // base URI
-        );
-        ptProxy = PrincipleToken(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(ptImpl),
-                    deployer,
-                    ptInitData
-                )
-            )
-        );
-        require(
-            address(ptProxy) == predictedPtProxy,
-            "PT proxy address prediction failed - nonce drift"
-        );
-        console.log("[8/8] PrincipleToken proxy:", address(ptProxy));
+        // [6] Wire everything — no nonce tricks needed
+        asset.setPrincipleToken(address(pt));
+        console.log("      asset.principleToken wired to:", address(pt));
 
-        // ── Wire PrincipleAsset → PrincipleToken (the fix for root cause #1) ──
-        assetProxy.setPrincipleToken(address(ptProxy));
-        console.log(
-            "      PrincipleAsset.principleToken wired to:",
-            address(ptProxy)
-        );
+        guardFactory.setOperator(address(pt));
+        console.log("      guardFactory.operator wired to:", address(pt));
 
-        // ── Set platform treasury (the fix for root cause #2) ─────────────────
-        ptProxy.setPlatformTreasury(treasury);
-        console.log("      platformTreasury set to:", treasury);
+        factory.setOperator(address(pt));
+        console.log("      factory.operator wired to:", address(pt));
 
-        // ── (Optional) Deploy the swap router proxy ────────────────────────────
-        PrincipleRouter routerImpl = new PrincipleRouter(
-            swapRouter02,
-            address(usdc)
-        );
-        bytes memory routerInitData = abi.encodeWithSignature("initialize()");
-        routerProxy = PrincipleRouter(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(routerImpl),
-                    deployer,
-                    routerInitData
-                )
-            )
-        );
-        console.log("      PrincipleRouter proxy:", address(routerProxy));
+        // [7] Set platform treasury
+        pt.setPlatformTreasury(treasury);
+        console.log("[7/8] platformTreasury    :", treasury);
+
+        // [8] PrincipleRouter — standalone
+        router = new PrincipleRouter(swapRouter02, address(usdc));
+        console.log("[8/8] PrincipleRouter     :", address(router));
     }
 
     function _printSummary() internal view {
@@ -220,16 +130,16 @@ contract DeployPrincipleToken2 is Script {
         console.log(
             "==========================================================="
         );
-        console.log("  EXPERIMENT DEPLOYMENT COMPLETE - DeployPrincipleToken2");
+        console.log("  DEPLOYMENT COMPLETE - Non-Upgradeable Stack");
         console.log(
             "==========================================================="
         );
         console.log("MockUSD (settlement)  :", address(usdc));
         console.log("GuardFactory          :", address(guardFactory));
         console.log("FundraiseFactory      :", address(factory));
-        console.log("PrincipleAsset (proxy):", address(assetProxy));
-        console.log("PrincipleToken (proxy):", address(ptProxy));
-        console.log("PrincipleRouter(proxy):", address(routerProxy));
+        console.log("PrincipleAsset        :", address(asset));
+        console.log("PrincipleToken        :", address(pt));
+        console.log("PrincipleRouter       :", address(router));
         console.log("platformTreasury      :", treasury);
         console.log("");
         console.log(
@@ -244,7 +154,7 @@ contract DeployPrincipleToken2 is Script {
         console.log(
             string.concat(
                 "  cast send ",
-                vm.toString(address(ptProxy)),
+                vm.toString(address(pt)),
                 " 'registerProperty(string)' 'ipfs://your-metadata'",
                 " --rpc-url $BSC_TESTNET_RPC_URL --private-key $PRIVATE_KEY"
             )
@@ -253,27 +163,17 @@ contract DeployPrincipleToken2 is Script {
             "  => Note the tokenId emitted in the PropertyRegistered event"
         );
         console.log("");
-        console.log(
-            "Step B - Approve the ERC-721 for transfer (ROOT CAUSE #3 FIX):"
-        );
+        console.log("Step B - Approve the ERC-721 for transfer:");
         console.log("  Replace <TOKEN_ID> with the tokenId from Step A");
         console.log(
             string.concat(
                 "  cast send ",
-                vm.toString(address(assetProxy)),
+                vm.toString(address(asset)),
                 " 'approve(address,uint256)' ",
-                vm.toString(address(ptProxy)),
+                vm.toString(address(pt)),
                 " <TOKEN_ID>",
                 " --rpc-url $BSC_TESTNET_RPC_URL --private-key $PRIVATE_KEY"
             )
-        );
-        console.log("");
-        console.log("Step C - Mint principle tokens:");
-        console.log(
-            "  (totalSupply: 1=FIRST/10k, 2=SECOND/100k | presaleAmount: BPS 0-10000)"
-        );
-        console.log(
-            "  See PositionInput struct in src/libraries/Structs.sol for full params."
         );
         console.log("");
         console.log(
